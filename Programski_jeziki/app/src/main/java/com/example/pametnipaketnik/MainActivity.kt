@@ -72,8 +72,45 @@ class MainActivity : ComponentActivity() {
 
                 val boxId = rawId.trimStart('0')
 
-
+                if (boxId.isNotEmpty()) {
+                    Log.d("D4M", "Ugotovljen Box ID: $boxId")
+                    playToken(context, boxId)
+                } else {
+                    Log.e("D4M", "ID-ja ni bilo mogoče dobiti iz: $rawValue")
+                }
             }
+    }
+
+    private fun playToken(context: Context, boxId: String) {
+        val client = OkHttpClient()
+        val json = JSONObject().apply {
+            put("boxId", boxId)
+            put("tokenFormat", 5)
+        }
+
+        val request = Request.Builder()
+            .url("https://api-d4me-stage.direct4.me/sandbox/v1/Access/openbox")
+            .addHeader("Authorization", "Bearer 9ea96945-3a37-4638-a5d4-22e89fbc998f")
+            .post(json.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("D4M", "API napaka (preveri internet): ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseBody = response.body?.string()
+                if (responseBody != null) {
+                    try {
+                        val data = JSONObject(responseBody).optString("data")
+
+                    } catch (e: Exception) {
+                        Log.e("D4M", "Napaka pri branju JSON: ${e.message}")
+                    }
+                }
+            }
+        })
     }
 
 }
