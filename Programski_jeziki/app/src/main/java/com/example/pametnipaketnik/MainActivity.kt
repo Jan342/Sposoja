@@ -104,7 +104,11 @@ class MainActivity : ComponentActivity() {
                 if (responseBody != null) {
                     try {
                         val data = JSONObject(responseBody).optString("data")
-
+                        if (data.isNotEmpty()) {
+                            runOnUiThread {
+                                proccesAndPlay(context, data)
+                            }
+                        }
                     } catch (e: Exception) {
                         Log.e("D4M", "Napaka pri branju JSON: ${e.message}")
                     }
@@ -113,4 +117,44 @@ class MainActivity : ComponentActivity() {
         })
     }
 
+    fun proccesAndPlay(context: Context, base64Data: String) {
+        try {
+            val clean = base64Data.trim().replace("\"", "")
+            val bytes = Base64.decode(clean, Base64.DEFAULT)
+            val tempFile = File(context.cacheDir, "token.wav")
+
+            var success = false
+            try {
+                java.util.zip.GZIPInputStream(bytes.inputStream()).use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                success = true
+                Log.d("D4M", "Uspešno odpakirano z GZIP")
+            } catch (e: Exception) {
+                Log.d("D4M", "GZIP ni uspel.")
+            }
+
+            if (!success) {
+                FileOutputStream(tempFile).use { output ->
+                    output.write(bytes)
+                }
+                Log.d("D4M", "Zapisano kot WAV.")
+            }
+
+            if (tempFile.exists() && tempFile.length() > 0) {
+                MediaPlayer().apply {
+                    setDataSource(tempFile.absolutePath)
+                    prepare()
+                    start()
+                    Log.d("D4M", "PISKA!")
+                    setOnCompletionListener { it.release() }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("D4M", "Končna napaka: ${e.message}")
+            e.printStackTrace()
+        }
+    }
 }
