@@ -7,16 +7,36 @@ import android.util.Base64
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.pametnipaketnik.data.OpeningHistoryRepository
+import com.example.pametnipaketnik.ui.HistorySection
 import com.example.pametnipaketnik.ui.theme.PametniPaketnikTheme
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -27,27 +47,71 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val historyRepository = remember { OpeningHistoryRepository(this@MainActivity) }
+            var history by remember { mutableStateOf(historyRepository.getHistory()) }
+            var searchQuery by remember { mutableStateOf("") }
+            var showHistory by remember { mutableStateOf(false) }
+            val filteredHistory = history.filter { record ->
+                record.boxId.contains(searchQuery.trim(), ignoreCase = true)
+            }
+
             PametniPaketnikTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             text = "Direct4Me Paketnik",
-                            style = MaterialTheme.typography.headlineMedium
+                            style = MaterialTheme.typography.headlineMedium,
                         )
-                        Spacer(modifier = Modifier.height(30.dp))
 
-                        Button(
-                            onClick = { startScanning(this@MainActivity) },
-                            modifier = Modifier.size(width = 200.dp, height = 60.dp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("Skeniraj in Odpri")
+                            Button(
+                                onClick = {
+                                    startScanning(this@MainActivity) { openedBoxId ->
+                                        history = historyRepository.addOpening(openedBoxId)
+                                        showHistory = true
+                                    }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                            ) {
+                                Text("Skeniraj")
+                            }
+
+                            OutlinedButton(
+                                onClick = { showHistory = true },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                            ) {
+                                Text("Zgodovina")
+                            }
+                        }
+
+                        if (showHistory) {
+                            HistorySection(
+                                history = filteredHistory,
+                                totalHistoryCount = history.size,
+                                searchQuery = searchQuery,
+                                onSearchQueryChange = { searchQuery = it },
+                                onClearHistory = {
+                                    history = historyRepository.clearHistory()
+                                    searchQuery = ""
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
                         }
                     }
                 }
@@ -55,7 +119,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startScanning(context: Context) {
+    private fun startScanning(context: Context, onOpened: (String) -> Unit) {
         val scanner = GmsBarcodeScanning.getClient(context)
         Log.d("D4M", "Odpiram skener...")
 
@@ -65,23 +129,20 @@ class MainActivity : ComponentActivity() {
                 Log.d("D4M", "Skeniranje uspelo! Surov tekst: $rawValue")
 
                 val cleanUrl = rawValue.removeSuffix("/")
-
                 val parts = cleanUrl.split("/")
-
                 val rawId = parts.find { it.length >= 4 && it.all { char -> char.isDigit() } } ?: ""
-
                 val boxId = rawId.trimStart('0')
 
                 if (boxId.isNotEmpty()) {
                     Log.d("D4M", "Ugotovljen Box ID: $boxId")
-                    playToken(context, boxId)
+                    playToken(context, boxId, onOpened)
                 } else {
-                    Log.e("D4M", "ID-ja ni bilo mogoče dobiti iz: $rawValue")
+                    Log.e("D4M", "ID-ja ni bilo mogoce dobiti iz: $rawValue")
                 }
             }
     }
 
-    private fun playToken(context: Context, boxId: String) {
+    private fun playToken(context: Context, boxId: String, onOpened: (String) -> Unit) {
         val client = OkHttpClient()
         val json = JSONObject().apply {
             put("boxId", boxId)
@@ -107,6 +168,7 @@ class MainActivity : ComponentActivity() {
                         if (data.isNotEmpty()) {
                             runOnUiThread {
                                 proccesAndPlay(context, data)
+                                onOpened(boxId)
                             }
                         }
                     } catch (e: Exception) {
@@ -131,7 +193,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 success = true
-                Log.d("D4M", "Uspešno odpakirano z GZIP")
+                Log.d("D4M", "Uspesno odpakirano z GZIP")
             } catch (e: Exception) {
                 Log.d("D4M", "GZIP ni uspel.")
             }
@@ -153,7 +215,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         } catch (e: Exception) {
-            Log.e("D4M", "Končna napaka: ${e.message}")
+            Log.e("D4M", "Koncna napaka: ${e.message}")
             e.printStackTrace()
         }
     }
