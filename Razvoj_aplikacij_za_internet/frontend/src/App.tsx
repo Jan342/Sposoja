@@ -9,6 +9,7 @@ import Logout from './components/Logout'
 import GuestRoute from './components/GuestRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './components/Dashboard'
+import RacketRent from './components/RacketRent'
 
 function App() {
   const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/login" element={<GuestRoute><Login /></GuestRoute>}></Route>
                 <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>}></Route>
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}></Route>
+                <Route path="/rent" element={<ProtectedRoute><RacketRent /></ProtectedRoute>}></Route>
               </Routes>
             </div>
           </UserContext.Provider>
