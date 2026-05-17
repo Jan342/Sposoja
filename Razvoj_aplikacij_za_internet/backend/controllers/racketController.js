@@ -42,4 +42,26 @@ module.exports = {
             return res.status(201).json(racket);
         });
     },
+
+    remove: async function (req, res) {
+        var id = req.params.id;
+
+        try{
+            var racket = await racketModel.findByIdAndDelete(id);
+            if (!racket) {
+                return res.status(404).json({
+                    message: 'No such racket found in database.',
+                });
+            }
+                return res.status(200).json({
+                    message: 'Successfully deleted racket.',
+                });
+        }
+        catch(err){
+            return res.status(500).json({
+                message: 'Error when deleting racket.',
+                error: err.message
+            });
+        }
+    }
 };

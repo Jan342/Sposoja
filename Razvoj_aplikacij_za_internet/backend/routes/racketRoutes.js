@@ -16,6 +16,6 @@ function requiresLogin(req, res, next){
 
 router.get('/',racketController.list);
 router.post('/addRacket', requiresLogin, upload.single('image'), racketController.create);
-
+router.delete('/:id', requiresLogin, racketController.remove);
 
 module.exports = router;
