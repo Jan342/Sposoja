@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         scanner.startScan()
             .addOnSuccessListener { barcode ->
                 val rawValue = barcode.rawValue ?: ""
-                Log.d("D4M", "Skeniranje uspelo! Surov tekst: $rawValue")
+                Log.d("D4M", "Skeniranje uspelo! Tekst: $rawValue")
 
                 val cleanUrl = rawValue.removeSuffix("/")
 
@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
                 val boxId = rawId.trimStart('0')
 
                 if (boxId.isNotEmpty()) {
-                    Log.d("D4M", "Ugotovljen Box ID: $boxId")
+                    Log.d("D4M", "Box ID: $boxId")
                     playToken(context, boxId)
                 } else {
                     Log.e("D4M", "ID-ja ni bilo mogoče dobiti iz: $rawValue")
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("D4M", "API napaka (preveri internet): ${e.message}")
+                Log.e("D4M", "API napaka - preveri internet: ${e.message}")
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -106,7 +106,7 @@ class MainActivity : ComponentActivity() {
                         val data = JSONObject(responseBody).optString("data")
                         if (data.isNotEmpty()) {
                             runOnUiThread {
-                                proccesAndPlay(context, data)
+                                processAndPlay(context, data)
                             }
                         }
                     } catch (e: Exception) {
@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    fun proccesAndPlay(context: Context, base64Data: String) {
+    fun processAndPlay(context: Context, base64Data: String) {
         try {
             val clean = base64Data.trim().replace("\"", "")
             val bytes = Base64.decode(clean, Base64.DEFAULT)
@@ -132,7 +132,7 @@ class MainActivity : ComponentActivity() {
                 }
                 success = true
                 Log.d("D4M", "Uspešno odpakirano z GZIP")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Log.d("D4M", "GZIP ni uspel.")
             }
 
@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity() {
                     setDataSource(tempFile.absolutePath)
                     prepare()
                     start()
-                    Log.d("D4M", "PISKA!")
+                    Log.d("D4M", "Uspešno piska!")
                     setOnCompletionListener { it.release() }
                 }
             }
