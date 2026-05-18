@@ -31,6 +31,9 @@ function Header() {
                   <Nav.Link as={Link} to="/rent">
                     Dodaj lopar
                   </Nav.Link>
+                  <Nav.Link as={Link} to="/profile">
+                    Profil
+                  </Nav.Link>
                   <Nav.Link as={Link} to="/logout">
                     Odjava
                   </Nav.Link>
