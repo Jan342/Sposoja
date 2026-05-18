@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 function Racket(props: any){
     const navigate = useNavigate();
 
-<<<<<<< Updated upstream
     const handleDelete = async () => {
         if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
             try {
@@ -29,7 +28,6 @@ function Racket(props: any){
             }
         }
     };
-=======
     async function handleRent(){
         const res = await fetch("http://localhost:3001/rackets/rentRacket", {
             method: 'POST',
@@ -49,7 +47,6 @@ function Racket(props: any){
             console.log("already rented!");
         }
     }
->>>>>>> Stashed changes
     return(
         <Card bg="dark" text="white" className="shadow-sm" style={{width: "400px",borderRadius: "12px",overflow: "hidden",}}>
             <Card.Img variant="top" src={"http://localhost:3001/" + props.racket.path} style={{height: "250px",objectFit: "cover",}}/>

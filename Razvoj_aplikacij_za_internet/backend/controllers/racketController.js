@@ -45,7 +45,6 @@ module.exports = {
         });
     },
 
-<<<<<<< Updated upstream
     remove: async function (req, res) {
         var id = req.params.id;
 
@@ -66,7 +65,8 @@ module.exports = {
                 error: err.message
             });
         }
-=======
+    },
+
     rent: function (req,res){
         User.findById(req.session.userId).exec(function(err, u){
             if(err){
@@ -100,6 +100,5 @@ module.exports = {
                 })
             }
         })
->>>>>>> Stashed changes
     }
 };
