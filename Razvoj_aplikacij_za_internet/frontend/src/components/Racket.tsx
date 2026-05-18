@@ -1,6 +1,8 @@
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
+import { ServerRequest } from "../types/ServerRequest";
+
 function Racket(props: any){
     const navigate = useNavigate();
 
@@ -11,6 +13,8 @@ function Racket(props: any){
                     method: 'DELETE',
                     credentials: 'include',
                 });
+
+
 
                 if (response.ok) {
                     alert("Lopar uspešno izbrisan!");
@@ -29,16 +33,11 @@ function Racket(props: any){
         }
     };
     async function handleRent(){
-        const res = await fetch("http://localhost:3001/rackets/rentRacket", {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                racket: props.racket._id
-            })
-        });
+        const res = new ServerRequest("rackets/rentRacket");
+        const data = await (await res.post({racket: props.racket._id})).json();
 
-        const data = await res.json();
+        console.log(data);
+
         if(!data.message){
             props.onRentSuccess();
         }
