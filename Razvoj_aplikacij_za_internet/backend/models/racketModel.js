@@ -11,7 +11,8 @@ var racketSchema = new Schema({
 	 	type: Schema.Types.ObjectId,
 	 	ref: 'user'
 	},*/
-    'path' : String
+    'path' : String,
+    'rented': Boolean
 });
 
 module.exports = mongoose.model('racket', racketSchema);

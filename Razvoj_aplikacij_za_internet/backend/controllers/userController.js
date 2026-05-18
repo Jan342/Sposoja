@@ -11,6 +11,7 @@ module.exports = {
         var user = new UserModel({
 			username : req.body.username,
 			password : req.body.password,
+            rented : null
         });
 
         if(req.body.password === req.body.cpassword){

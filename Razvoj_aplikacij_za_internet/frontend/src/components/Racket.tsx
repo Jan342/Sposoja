@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 function Racket(props: any){
     const navigate = useNavigate();
 
+<<<<<<< Updated upstream
     const handleDelete = async () => {
         if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
             try {
@@ -28,6 +29,27 @@ function Racket(props: any){
             }
         }
     };
+=======
+    async function handleRent(){
+        const res = await fetch("http://localhost:3001/rackets/rentRacket", {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                racket: props.racket._id
+            })
+        });
+
+        const data = await res.json();
+        if(!data.message){
+            props.onRentSuccess();
+        }
+        else{
+            //sporocimo uporabniku da je ze rental
+            console.log("already rented!");
+        }
+    }
+>>>>>>> Stashed changes
     return(
         <Card bg="dark" text="white" className="shadow-sm" style={{width: "400px",borderRadius: "12px",overflow: "hidden",}}>
             <Card.Img variant="top" src={"http://localhost:3001/" + props.racket.path} style={{height: "250px",objectFit: "cover",}}/>
@@ -46,7 +68,7 @@ function Racket(props: any){
                         Detajli
                     </Button>
 
-                    <Button variant="primary" size="sm" onClick={() => navigate(`/rent/${props.racket._id}`)}>
+                    <Button variant="primary" size="sm" onClick={handleRent}>
                         Izposoja
                     </Button>
                 <Button variant="danger" size="sm" onClick={handleDelete}>

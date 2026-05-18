@@ -4,7 +4,11 @@ var Schema   = mongoose.Schema;
 
 var userSchema = new Schema({
 	'username' : String,
-	'password' : String
+	'password' : String,
+	'rented' : {
+	 	type: Schema.Types.ObjectId,
+	 	ref: 'racket'
+	},
 });
 
 userSchema.pre('save', function(next){

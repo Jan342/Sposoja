@@ -14,8 +14,16 @@ function requiresLogin(req, res, next){
     }
 }
 
+
+
 router.get('/',racketController.list);
 router.post('/addRacket', requiresLogin, upload.single('image'), racketController.create);
+<<<<<<< Updated upstream
 router.delete('/:id', requiresLogin, racketController.remove);
+=======
+router.post('/rentRacket', requiresLogin, racketController.rent);
+
+
+>>>>>>> Stashed changes
 
 module.exports = router;
