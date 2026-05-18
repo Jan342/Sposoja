@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { type ChangeEvent, type FormEvent, useState } from "react"
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
@@ -7,8 +7,11 @@ function RacketRent(){
     const [description, setDescription] = useState('');
     const[file, setFile] = useState<File | null>(null);
 
-    async function onSubmit(e){
+    async function onSubmit(e: FormEvent<HTMLFormElement>){
         e.preventDefault();
+        if (!file) {
+            return;
+        }
         const formData = new FormData();
         formData.append('name', model);
         formData.append('image', file);
@@ -53,7 +56,7 @@ function RacketRent(){
                 <Form.Label>Izberi sliko loparja</Form.Label>
                 <Form.Control
                 type="file"
-                onChange={(e: any) => setFile(e.target.files?.[0])}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)}
                 />
             </Form.Group>
 

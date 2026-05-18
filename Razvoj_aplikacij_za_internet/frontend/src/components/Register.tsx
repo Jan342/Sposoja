@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -10,7 +10,7 @@ function Register(){
     const [cpassword, setCPassword] = useState('');
     const[error, setError] = useState('');
 
-    async function Register(e){
+    async function Register(e: FormEvent<HTMLFormElement>){
         e.preventDefault();
         const res = await fetch("http://localhost:3001/users/register", {
             method: 'POST',

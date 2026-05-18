@@ -11,10 +11,11 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './components/Dashboard'
 import RacketRent from './components/RacketRent'
 import Profile from './components/Profile'
+import type { User } from './types/user'
 
 function App() {
-  const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
-  const updateUserData = (userInfo) => {
+  const [user, setUser] = useState<User | null>(localStorage.user ? JSON.parse(localStorage.user) : null);
+  const updateUserData = (userInfo: User | null) => {
   localStorage.setItem("user", JSON.stringify(userInfo));
   setUser(userInfo);
   }

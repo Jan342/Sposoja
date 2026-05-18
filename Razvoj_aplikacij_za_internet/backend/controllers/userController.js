@@ -1,4 +1,5 @@
 var UserModel = require('../models/userModel.js');
+var bcrypt = require('bcrypt');
 
 /**
  * userController.js
@@ -55,5 +56,48 @@ module.exports = {
                 }
             });
         }
+    },
+
+    changePassword: function(req, res) {
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ error: 'User is not logged in' });
+        }
+
+        if (!req.body.oldPassword || !req.body.newPassword || !req.body.confirmPassword) {
+            return res.status(400).json({ error: 'All password fields are required' });
+        }
+
+        if (req.body.newPassword !== req.body.confirmPassword) {
+            return res.status(400).json({ error: 'New passwords do not match' });
+        }
+
+        UserModel.findById(req.session.userId).exec(function(err, user) {
+            if (err) {
+                return res.status(500).json({ error: 'Error when finding user' });
+            }
+
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            bcrypt.compare(req.body.oldPassword, user.password, function(err, result) {
+                if (err) {
+                    return res.status(500).json({ error: 'Error when checking password' });
+                }
+
+                if (!result) {
+                    return res.status(401).json({ error: 'Old password is incorrect' });
+                }
+
+                user.password = req.body.newPassword;
+                user.save(function(err) {
+                    if (err) {
+                        return res.status(500).json({ error: 'Error when changing password' });
+                    }
+
+                    return res.status(200).json({ message: 'Password changed successfully' });
+                });
+            });
+        });
     }
 };
