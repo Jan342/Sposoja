@@ -5,6 +5,7 @@ var userController = require('../controllers/userController.js');
 
 router.post('/register', userController.create);
 router.post('/login',userController.login);
+router.post('/changePassword', userController.changePassword);
 router.get('/logout', userController.logout);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import { useContext,useState } from "react";
+import { type FormEvent, useContext,useState } from "react";
 import { UserContext } from "../contexts/userContext";
 import { Link } from "react-router-dom";
 import Form from "react-bootstrap/Form";
@@ -12,7 +12,7 @@ function Login(){
     const [error, setError] = useState('');
     const userContext = useContext(UserContext); 
 
-    async function Login(e){
+    async function Login(e: FormEvent<HTMLFormElement>){
         e.preventDefault();
         const res = await fetch("http://localhost:3001/users/login", {
             method: "POST",
