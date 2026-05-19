@@ -4,7 +4,7 @@ import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 
 function Profile() {
     const context = useContext(UserContext);
-    const user = context ? context.user : null;
+    const user = context && context.user ? (context.user as any) : null;    
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,7 +57,25 @@ function Profile() {
                 {user ? (
                     <div>
                         <p><strong>Uporabnik:</strong> {user.username || "Prijavljen"}</p>
-
+                        <p>
+                            <strong>Status računa:</strong>{" "}
+                            {user.role === "clan" ? (
+                                <span className="text-warning fw-bold">👑 Član kluba</span>
+                            ) : (
+                                <span className="text-info fw-bold">🎾 Rekreativec</span>
+                            )}
+                        </p>
+                        {user && user.rented ? (
+                            <Alert variant="info" className="mt-3">
+                                <strong>Trenutno imaš izposojen lopar!</strong><br />
+                                ID izposojenega loparja: {user.rented}<br />
+                                <small>Obišči omarico za prevzem.</small>
+                            </Alert>
+                        ) : (
+                            <Alert variant="secondary" className="mt-3 opacity-75">
+                                Nemate izposojenega nobenega loparja.
+                            </Alert>
+                        )}
                         {!showPasswordForm && (
                             <Button
                                 type="button"

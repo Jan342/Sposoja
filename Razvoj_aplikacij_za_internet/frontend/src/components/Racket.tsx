@@ -2,9 +2,12 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
 import { ServerRequest } from "../types/ServerRequest";
+import { useContext } from "react";
+import { UserContext } from "../contexts/userContext";
 
 function Racket(props: any){
     const navigate = useNavigate();
+    const context = useContext(UserContext);
 
     const handleDelete = async () => {
         if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
@@ -38,7 +41,11 @@ function Racket(props: any){
         console.log(data);
 
         if(!data.message){
+            if (context && context.setUserContext && data.user) {
+                context.setUserContext(data.user);
+            }
             props.onRentSuccess();
+            alert("Lopar uspešno izposojen!");
         }
         else{
             //sporocimo uporabniku da je ze rental

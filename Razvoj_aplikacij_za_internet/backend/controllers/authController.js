@@ -35,9 +35,12 @@ module.exports = {
 
                 req.session.userId = user._id;
                 req.session.userType = 'person';
+                req.session.user = user;
                 return res.json({
                     _id: user._id,
                     username: user.username,
+                    role: user.role,
+                    rented: user.rented,
                     accountType: 'person'
                 });
             });
