@@ -41,7 +41,19 @@ module.exports = {
             rented: false,
         });
 
-        racket.save(function (err, photo) {
+        User.findById(req.session.userId).exec(function(err,r){
+            if (err) {
+                return res.status(500).json({
+                    message: "DB error",
+                    error: err
+                });
+            }
+            
+            if (r) {
+                return res.status(401).json({ message: "Unauthorized" });
+            }
+
+            racket.save(function (err, photo) {
             if (err) {
                 return res.status(500).json({
                     message: 'Error when creating racket',
@@ -51,6 +63,7 @@ module.exports = {
 
             return res.status(201).json(racket);
         });
+        })
     },
 
     remove: async function (req, res) {

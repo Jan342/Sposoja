@@ -1,6 +1,7 @@
 export interface User {
   _id: string;
   username: string;
+  role: string;
   accountType: "user"
 }
 
@@ -8,6 +9,7 @@ export interface Club {
   _id: string;
   username: string;
   clubName: string;
+  role: string;
   accountType: "club"
 }
 
