@@ -12,7 +12,10 @@ var racketSchema = new Schema({
 	 	ref: 'user'
 	},*/
     'path' : String,
-    'rented': Boolean
+    'rented': Boolean,
+    'owner': { type: String,
+        enum: ['klub', 'rekreativec'],
+        default: 'klub' }
 });
 
 module.exports = mongoose.model('racket', racketSchema);

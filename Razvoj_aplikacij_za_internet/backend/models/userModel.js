@@ -8,6 +8,11 @@ var userSchema = new Schema({
 	'username' : String,
 	'address' : String,
 	'password' : String,
+	'role' : {
+		type: String,
+	enum: ['clan', 'rekreativec'],
+	default: 'rekreativec' 
+	},
 	'rented' : {
 	 	type: Schema.Types.ObjectId,
 	 	ref: 'racket'

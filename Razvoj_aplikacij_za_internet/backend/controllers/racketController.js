@@ -9,21 +9,29 @@ const User = require('../models/userModel.js');
 module.exports = {
 
     list: function (req, res) {
-        racketModel.find({rented: false})
+    var targetOwner = 'rekreativec';
+
+    if (req.session && req.session.userId) {
+        User.findById(req.session.userId, function (err, user) {
+            if (user && user.role === 'clan') {
+                targetOwner = 'klub';
+            }
+            fetchRackets(targetOwner, res);
+        });
+    } else {
+        fetchRackets(targetOwner, res);
+    }
+
+    function fetchRackets(ownerType, res) {
+        racketModel.find({ rented: false, owner: ownerType })
         .exec(function (err, rackets) {
             if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting racket.',
-                    error: err
-                });
+                return res.status(500).json({ message: 'Error when getting racket.', error: err });
             }
-            var data = [];
-            data.rackets = rackets;
-            console.log(rackets)
             return res.json(rackets);
         });
-    },
-
+    }
+},
     create: function (req, res) {
         var racket = new racketModel({
 			model : req.body.name,
@@ -85,17 +93,29 @@ module.exports = {
                 
                 if(!r.rented){
                     r.rented = true;
-                    User.findByIdAndUpdate(req.session.userId,{ rented: r._id }).exec(function(err,uu){});
-
+                    
                     return r.save(function (err, updatedRacket) {
                         if (err) {
                             return res.status(500).json(err);
                         }
 
-                        return res.status(200).json(updatedRacket);
-                        });
-                    }
+                        User.findByIdAndUpdate(
+                            req.session.userId, 
+                            { rented: r._id }, 
+                            { new: true }
+                        ).exec(function (err, updatedUser) {
+                            if (err) {
+                                return res.status(500).json(err);
+                            }
 
+                            req.session.user = updatedUser;
+                            return res.status(200).json({
+                                racket: updatedRacket,
+                                user: updatedUser
+                            });
+                        });
+                    });
+                }
                     return res.status(400).json({ message: "Racket is rented by someone else" });
                 })
             }
