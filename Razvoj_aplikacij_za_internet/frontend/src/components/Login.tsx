@@ -5,6 +5,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
+import { ServerRequest } from "../types/ServerRequest";
 
 function Login(){
     const [username, setUsername] = useState('');
@@ -14,16 +15,8 @@ function Login(){
 
     async function Login(e: FormEvent<HTMLFormElement>){
         e.preventDefault();
-        const res = await fetch("http://localhost:3001/users/login", {
-            method: "POST",
-            credentials: "include",
-            headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
-        });
-        const data = await res.json();
+        const res = new ServerRequest('users/login');
+        const data = await (await res.post({username: username, password: password})).json();
         if(data._id !== undefined){
             userContext.setUserContext(data);
             window.location.href="/dashboard";

@@ -3,6 +3,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
+import { ServerRequest } from "../types/ServerRequest";
 
 function Register(){
     const [username, setUsername] = useState('');
@@ -12,17 +13,8 @@ function Register(){
 
     async function Register(e: FormEvent<HTMLFormElement>){
         e.preventDefault();
-        const res = await fetch("http://localhost:3001/users/register", {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-                cpassword: cpassword
-            })
-        });
-        const data = await res.json();
+        const res = new ServerRequest('users/register');
+        const data = await (await res.post({username: username, password:password, cpassword: cpassword})).json();
         if(data._id !== undefined){
             window.location.href="/login";
         }
