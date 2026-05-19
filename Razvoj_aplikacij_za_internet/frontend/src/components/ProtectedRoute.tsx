@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 
 type ProtectedRouteProps = {
   children: JSX.Element;
-  role: "user" | "club";
+  role?: "user" | "club";
 };
 
 function ProtectedRoute({
