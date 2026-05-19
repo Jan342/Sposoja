@@ -3,14 +3,17 @@ import Racket from "./Racket";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import { ServerRequest } from "../types/ServerRequest";
 
 function Dashboard(){
     const [rackets, setRackets] = useState([]);
     const [reload, setReload] = useState(false);
     useEffect(function(){
         const getRackets = async function(){
-            const res = await fetch("http://localhost:3001/rackets");
-            const data = await res.json();
+            //const res = await fetch("http://localhost:3001/rackets");
+            //const data = await res.json();
+            const res = new ServerRequest('rackets')
+            const data = await (await res.get()).json();
             setRackets(data);
         }
         getRackets();

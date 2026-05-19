@@ -85,8 +85,8 @@ module.exports = {
                 
                 if(!r.rented){
                     r.rented = true;
-                    u.rented = r._id;
-                    u.save();
+                    User.findByIdAndUpdate(req.session.userId,{ rented: r._id }).exec(function(err,uu){});
+
                     return r.save(function (err, updatedRacket) {
                         if (err) {
                             return res.status(500).json(err);
