@@ -14,8 +14,6 @@ function Racket(props: any){
                     credentials: 'include',
                 });
 
-
-
                 if (response.ok) {
                     alert("Lopar uspešno izbrisan!");
                     if (props.onDelete) {
@@ -32,6 +30,7 @@ function Racket(props: any){
             }
         }
     };
+    
     async function handleRent(){
         const res = new ServerRequest("rackets/rentRacket");
         const data = await (await res.post({racket: props.racket._id})).json();

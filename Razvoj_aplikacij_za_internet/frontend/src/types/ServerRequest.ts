@@ -29,7 +29,6 @@ export class ServerRequest{
     }
 
     makeRequest() : Promise<Response>{
-        console.log(this.request);
         return fetch(this.serverAPI,this.request);
     }
 
