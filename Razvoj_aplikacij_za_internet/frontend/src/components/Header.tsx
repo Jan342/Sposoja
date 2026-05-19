@@ -28,9 +28,11 @@ function Header() {
                   <Nav.Link as={Link} to="/dashboard">
                     Nadzorna plošča
                   </Nav.Link>
-                  <Nav.Link as={Link} to="/rent">
-                    Dodaj lopar
-                  </Nav.Link>
+                  {value.user.accountType === "club" && (
+                    <Nav.Link as={Link} to="/rent">
+                      Dodaj lopar
+                    </Nav.Link>
+                  )}
                   <Nav.Link as={Link} to="/profile">
                     Profil
                   </Nav.Link>
