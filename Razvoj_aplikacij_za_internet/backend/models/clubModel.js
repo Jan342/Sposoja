@@ -8,6 +8,7 @@ var clubSchema = new Schema({
     'username': String,
     'clubName': String,
     'address': String,
+    'profileImage': String,
     'packageCount': Number,
     'password': String
 });

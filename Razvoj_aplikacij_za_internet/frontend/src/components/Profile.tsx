@@ -1,16 +1,78 @@
-import { type FormEvent, useContext, useState } from "react";
+import { type FormEvent, useContext, useState, type ChangeEvent } from "react";
 import { UserContext } from "../contexts/userContext";
 import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 
 function Profile() {
     const context = useContext(UserContext);
     const user = context && context.user ? (context.user as any) : null;    
+    
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+    const [imageBase64, setImageBase64] = useState<string | null>(null);
+
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+    function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onloadend = () => {
+                setImageBase64(reader.result as string);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function uploadImage() {
+        if (!imageBase64) {
+            setError("Prosimo, najprej izberi sliko.");
+            return;
+        }
+
+        setMessage("");
+        setError("");
+
+        try {
+            console.log("Pošiljam zahtevek na backend...");
+            const res = await fetch("http://localhost:3001/users/uploadProfileImage", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: imageBase64 })
+            });
+
+            console.log("Status koda iz backenda:", res.status); 
+
+            if (res.status === 404) {
+                setError("Napaka 404: Strežnik pravi, da ta URL ne obstaja. Preveri backend poti (routes).");
+                return;
+            }
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage("Profilna slika uspešno posodobljena!");
+                setImageBase64(null);
+                
+                if (context && context.setUserContext) {
+                    context.setUserContext(data);
+                } else if (context && (context as any).setUser) {
+                    (context as any).setUser(data);
+                }
+            } else {
+                setError(data.error || "Nalaganje slike ni uspelo.");
+            }
+        } catch (err) {
+            console.error("Uf, fetch se je sesul:", err);
+            setError("Prišlo je do napake pri povezavi s strežnikom.");
+        }
+    }
 
     async function changePassword(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -49,40 +111,102 @@ function Profile() {
         setShowPasswordForm(false);
     }
 
+    const userInitial = user && user.username 
+        ? user.username.charAt(0).toUpperCase() 
+        : "U";
+
     return (
         <Container className="mt-5" style={{ maxWidth: "600px" }}>
-            <Card bg="dark" text="white" className="p-4 shadow">
-                <h2>Moj Profil</h2>
+            <Card bg="dark" text="white" className="p-4 shadow text-start">
+                <h2 className="text-center text-md-start">Moj Profil</h2>
                 <hr />
                 {user ? (
                     <div>
+                        {}
+                        <div className="text-center mb-4 p-4 bg-secondary bg-opacity-10 rounded shadow-sm d-flex flex-column align-items-center">
+                            {user.profileImage ? (
+                                <img 
+                                    src={user.profileImage} 
+                                    style={{ 
+                                        width: "120px", 
+                                        height: "120px", 
+                                        borderRadius: "50%", 
+                                        objectFit: "cover", 
+                                        border: "4px solid #0d6efd",
+                                        boxShadow: "0px 4px 10px rgba(13, 110, 253, 0.3)"
+                                    }} 
+                                    alt="Profilna slika" 
+                                />
+                            ) : (
+                                <div 
+                                    className="d-flex align-items-center justify-content-center fw-bold shadow"
+                                    style={{ 
+                                        width: "120px", 
+                                        height: "120px", 
+                                        borderRadius: "50%", 
+                                        fontSize: "3rem",
+                                        background: "linear-gradient(135deg, #0d6efd 0%, #0a4da2 100%)",
+                                        color: "#ffffff",
+                                        letterSpacing: "1px"
+                                    }}
+                                >
+                                    {userInitial}
+                                </div>
+                            )}
+
+                            {}
+                            <Form.Group className="mt-3 w-100" style={{ maxWidth: "280px" }}>
+                                <Form.Control 
+                                    type="file" 
+                                    size="sm" 
+                                    onChange={handleFileChange} 
+                                    accept="image/*"
+                                    className="bg-dark text-white border-secondary"
+                                />
+                                {imageBase64 && (
+                                    <Button 
+                                        onClick={uploadImage} 
+                                        className="mt-2 w-100 fw-bold shadow-sm" 
+                                        variant="success" 
+                                        size="sm"
+                                    >
+                                        Potrdi posodobitev slike
+                                    </Button>
+                                )}
+                            </Form.Group>
+                        </div>
+                        {}
+
                         <p><strong>Uporabnik:</strong> {user.username || "Prijavljen"}</p>
                         <p>
                             <strong>Status računa:</strong>{" "}
-                            {user.role === "clan" ? (
+                            {(user.role === "clan" || user.accountType === "club") ? (
                                 <span className="text-warning fw-bold">👑 Član kluba</span>
                             ) : (
                                 <span className="text-info fw-bold">🎾 Rekreativec</span>
                             )}
                         </p>
-                        {user && user.rented ? (
-                            <Alert variant="info" className="mt-3">
+                        
+                        {user.rented ? (
+                            <Alert variant="info" className="mt-3 shadow-sm border-0 bg-info bg-opacity-25 text-black">
                                 <strong>Trenutno imaš izposojen lopar!</strong><br />
-                                ID izposojenega loparja: {user.rented}<br />
-                                <small>Obišči omarico za prevzem.</small>
+                                ID izposojenega loparja: <code className="text-black">{user.rented}</code><br />
+                                <small className="text-muted">Obišči omarico za prevzem.</small>
                             </Alert>
                         ) : (
-                            <Alert variant="secondary" className="mt-3 opacity-75">
-                                Nemate izposojenega nobenega loparja.
+                            <Alert variant="secondary" className="mt-3 opacity-50 border-0">
+                                Nimate izposojenega nobenega loparja.
                             </Alert>
                         )}
+                        
                         {!showPasswordForm && (
                             <Button
                                 type="button"
-                                variant="primary"
-                                className="mt-3"
+                                variant="outline-light"
+                                className="mt-3 w-100 w-md-auto"
                                 onClick={() => {
                                     setMessage("");
+                                    setError("");
                                     setShowPasswordForm(true);
                                 }}
                             >
@@ -91,8 +215,8 @@ function Profile() {
                         )}
 
                         {showPasswordForm && (
-                            <>
-                                <h4 className="mt-4">Spremeni geslo</h4>
+                            <div className="p-3 border border-secondary rounded mt-4 bg-dark bg-opacity-50">
+                                <h4 className="mb-3">Spremeni geslo</h4>
                                 <Form onSubmit={changePassword}>
                                     <Form.Group className="mb-3">
                                         <Form.Label>Staro geslo</Form.Label>
@@ -101,6 +225,7 @@ function Profile() {
                                             value={oldPassword}
                                             onChange={(e) => setOldPassword(e.target.value)}
                                             required
+                                            className="bg-dark text-white border-secondary"
                                         />
                                     </Form.Group>
 
@@ -111,6 +236,7 @@ function Profile() {
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             required
+                                            className="bg-dark text-white border-secondary"
                                         />
                                     </Form.Group>
 
@@ -121,26 +247,29 @@ function Profile() {
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             required
+                                            className="bg-dark text-white border-secondary"
                                         />
                                     </Form.Group>
 
-                                    <div className="d-flex gap-2">
+                                    <div className="d-flex gap-2 justify-content-end">
+                                        <Button type="button" variant="secondary" onClick={hidePasswordForm}>
+                                            Prekliči
+                                        </Button>
                                         <Button type="submit" variant="primary">
                                             Shrani geslo
                                         </Button>
-                                        <Button type="button" variant="secondary" onClick={hidePasswordForm}>
-                                            Preklici
-                                        </Button>
                                     </div>
                                 </Form>
-                            </>
+                            </div>
                         )}
 
-                        {message && <Alert variant="success" className="mt-3">{message}</Alert>}
-                        {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+                        {message && <Alert variant="success" className="mt-3 border-0 shadow-sm">{message}</Alert>}
+                        {error && <Alert variant="danger" className="mt-3 border-0 shadow-sm">{error}</Alert>}
                     </div>
                 ) : (
-                    <p>Za ogled profila se moras prijaviti.</p>
+                    <div className="text-center p-4">
+                        <p className="text-muted">Za ogled profila se moraš prijaviti.</p>
+                    </div>
                 )}
             </Card>
         </Container>

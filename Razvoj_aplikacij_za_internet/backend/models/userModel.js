@@ -8,6 +8,7 @@ var userSchema = new Schema({
 	'username' : String,
 	'address' : String,
 	'password' : String,
+	'profileImage': String,
 	'role' : {
 		type: String,
 	enum: ['clan', 'rekreativec'],

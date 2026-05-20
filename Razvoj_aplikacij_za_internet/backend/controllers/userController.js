@@ -65,5 +65,44 @@ module.exports = {
                 error: err
             });
         }
+    },
+
+    uploadProfileImage: async function(req, res) {
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: "Nisi prijavljen." });
     }
+        const base64Image = req.body.image;
+
+    if (!base64Image) {
+        return res.status(400).json({ error: "Slika ni bila prejeta." });
+    }
+    
+    try {
+        let updatedUser = await UserModel.findByIdAndUpdate(
+            req.session.userId, 
+            { profileImage: base64Image },
+            { new: true }
+        ).exec();
+
+        if (!updatedUser) {
+            updatedUser = await ClubModel.findByIdAndUpdate(
+                req.session.userId, 
+                { profileImage: base64Image }, 
+                { new: true }
+            ).exec();
+        }
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: "Uporabnik ali klub ni najden." });
+        }
+
+        return res.json(updatedUser);
+    } catch (err) {
+        return res.status(500).json({ 
+            error: "Napaka pri shranjevanju slike.", 
+            details: err.message 
+        });
+    }
+}
 };
+
