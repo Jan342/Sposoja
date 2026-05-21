@@ -94,6 +94,40 @@ module.exports = {
         });
     },
 
+    listPackageRackets: function(req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ message: "Only clubs can view package rackets" });
+        }
+
+        Package.findOne({ _id: req.params.id, club: req.session.userId }).exec(function(err, packageItem) {
+            if (err) {
+                return res.status(500).json({
+                    message: "Error when getting package",
+                    error: err
+                });
+            }
+
+            if (!packageItem) {
+                return res.status(404).json({ message: "Package not found" });
+            }
+
+            racketModel.find({ package: packageItem._id })
+            .exec(function(err, rackets) {
+                if (err) {
+                    return res.status(500).json({
+                        message: "Error when getting rackets",
+                        error: err
+                    });
+                }
+
+                return res.json({
+                    package: packageItem,
+                    rackets: rackets
+                });
+            });
+        });
+    },
+
     createPackage: function(req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can add packages" });
