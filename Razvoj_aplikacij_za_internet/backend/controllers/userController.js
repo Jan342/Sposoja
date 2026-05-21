@@ -1,5 +1,6 @@
 var UserModel = require('../models/userModel.js');
 var ClubModel = require('../models/clubModel.js');
+var racketModel = require('../models/racketModel.js');
 
 /**
  * userController.js
@@ -102,6 +103,37 @@ module.exports = {
             error: "Napaka pri shranjevanju slike.", 
             details: err.message 
         });
+    }
+},
+
+    returnRacket: async function (req, res) {
+    try {
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ error: "Nisi prijavljen." });
+        }
+
+        const userId = req.session.userId;
+        const user = await UserModel.findById(userId); 
+        
+        if (!user) {
+            return res.status(404).json({ error: "Uporabnik ni najden." });
+        }
+
+        if (user.rented) {
+            await racketModel.findByIdAndUpdate(user.rented, { rented: false });
+        }
+        user.rented = null;
+        await user.save();
+
+        if (req.session.user) {
+            req.session.user = user;
+        }
+
+        return res.json(user);
+
+    } catch (err) {
+        console.error("Točna napaka na backendu:", err);
+        return res.status(500).json({ error: "Napaka na strežniku pri vračanju loparja." });
     }
 }
 };

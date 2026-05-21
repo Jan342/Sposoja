@@ -48,34 +48,32 @@ function Racket(props: any){
             alert("Lopar uspešno izposojen!");
         }
         else{
-            //sporocimo uporabniku da je ze rental
             console.log("already rented!");
         }
     }
     return(
-        <Card bg="dark" text="white" className="shadow-sm" style={{width: "400px",borderRadius: "12px",overflow: "hidden",}}>
-            <Card.Img variant="top" src={"http://localhost:3001/" + props.racket.path} style={{height: "250px",objectFit: "cover",}}/>
-            <Card.Body>
-                <Card.Title className="fw-bold">
-                {props.racket.model}
-                </Card.Title>
+        <Card bg="dark" text="white" className="shadow-sm w-100 h-100 d-flex flex-column" style={{ borderRadius: "12px", overflow: "hidden" }}>
+            <Card.Img variant="top" src={"http://localhost:3001/" + props.racket.path} style={{ height: "250px", objectFit: "cover" }}/>
+            <Card.Body className="d-flex flex-column justify-content-between">
+                <div>
+                    <Card.Title className="fw-bold text-capitalize">
+                        {props.racket.model}
+                    </Card.Title>
+                    <Card.Text className="text-white-50">
+                        {props.racket.description}
+                    </Card.Text>
+                </div>
 
-                <Card.Text>
-                {props.racket.description}
-                </Card.Text>
-
-                <div className="d-flex gap-2 mt-3">
-          
+                <div className="d-flex gap-2 mt-4 justify-content-start">
                     <Button variant="outline-light" size="sm" onClick={() => navigate(`/racket/${props.racket._id}`)}>
                         Detajli
                     </Button>
-
                     <Button variant="primary" size="sm" onClick={handleRent}>
                         Izposoja
                     </Button>
-                <Button variant="danger" size="sm" onClick={handleDelete}>
-                    Izbriši
-                </Button>
+                    <Button variant="danger" size="sm" onClick={handleDelete}>
+                        Izbriši
+                    </Button>
                 </div>
             </Card.Body>
         </Card>
