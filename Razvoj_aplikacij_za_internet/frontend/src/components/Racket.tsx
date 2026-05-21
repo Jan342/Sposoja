@@ -5,84 +5,78 @@ import { ServerRequest } from "../types/ServerRequest";
 import { useContext } from "react";
 import { UserContext } from "../contexts/userContext";
 
-function Racket(props: any){
+function Racket(props: any) {
     const navigate = useNavigate();
     const context = useContext(UserContext);
+    
+    const user = context?.user as any;
+    const isClub = user && (user.role === "club" || user.isClubMember);
 
     const handleDelete = async () => {
-        if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
-            try {
-                const response = await fetch(`http://localhost:3001/rackets/${props.racket._id}`, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                });
+    if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
+        try {
+            const response = await fetch(`http://localhost:3001/rackets/${props.racket._id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
 
-                if (response.ok) {
-                    alert("Lopar uspešno izbrisan!");
-                    if (props.onDelete) {
-                        props.onDelete(props.racket._id);
-                    } else {
-                        window.location.reload();
-                    }
-                } else {
-                    alert("Napaka pri brisanju loparja.");
-                }
-            } catch (error) {
-                console.error("Napaka:", error);
-                alert("Prišlo je do napake pri povezavi z zaledjem.");
+            if (response.ok) {
+                alert("Lopar uspešno izbrisan!");
+                window.location.reload(); 
+            } else {
+                alert("Napaka pri brisanju loparja.");
             }
+        } catch (error) {
+            console.error("Napaka:", error);
         }
-    };
+    }
+};
     
     async function handleRent() {
         const res = new ServerRequest("rackets/rentRacket");
         const responseObj = await res.post({ racket: props.racket._id });
         const data = await responseObj.json();
 
-        console.log("Odziv iz backenda:", data);
-
         if (data.user || data.success || responseObj.status === 200) {            
             if (context && context.setUserContext && data.user) {
                 context.setUserContext(data.user);
             }
-            
             if (props.onRentSuccess) {
                 props.onRentSuccess();
             }
-            
             alert("Lopar uspešno izposojen!");
         } else {
-            console.log("Izposoja ni uspela ali pa je lopar že zaseden:", data.message);
             alert(data.error || data.message || "Prišlo je do napake pri izposoji.");
         }
     }
-    return(
+
+    return (
         <Card bg="dark" text="white" className="shadow-sm w-100 h-100 d-flex flex-column" style={{ borderRadius: "12px", overflow: "hidden" }}>
             <Card.Img variant="top" src={"http://localhost:3001/" + props.racket.path} style={{ height: "250px", objectFit: "cover" }}/>
             <Card.Body className="d-flex flex-column justify-content-between">
                 <div>
-                    <Card.Title className="fw-bold text-capitalize">
-                        {props.racket.model}
-                    </Card.Title>
-                    <Card.Text className="text-white-50">
-                        {props.racket.description}
-                    </Card.Text>
+                    <Card.Title className="fw-bold text-capitalize">{props.racket.model}</Card.Title>
+                    <Card.Text className="text-white-50">{props.racket.description}</Card.Text>
                 </div>
 
                 <div className="d-flex gap-2 mt-4 justify-content-start">
                     <Button variant="outline-light" size="sm" onClick={() => navigate(`/racket/${props.racket._id}`)}>
                         Detajli
                     </Button>
-                    <Button variant="primary" size="sm" onClick={handleRent}>
-                        Izposoja
-                    </Button>
-                    <Button variant="danger" size="sm" onClick={handleDelete}>
-                        Izbriši
-                    </Button>
+                    
+                    {props.racket.owner === "klub" ? (
+                        <Button variant="danger" size="sm" onClick={handleDelete}>
+                            Izbriši
+                        </Button>
+                    ) : (
+                        <Button variant="primary" size="sm" onClick={handleRent}>
+                            Izposoja
+                        </Button>
+                    )}
                 </div>
             </Card.Body>
         </Card>
-    )
-};
+    );
+}
 
-export default Racket
+export default Racket;

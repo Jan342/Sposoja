@@ -47,7 +47,7 @@ function Dashboard() {
         }
     }
 
-   useEffect(() => {
+    useEffect(() => {
         if (user && !user.rented) {
             refreshRackets();
         }
@@ -85,7 +85,6 @@ function Dashboard() {
 
     return (
         <Container className="mt-5" style={{ maxWidth: "1000px" }}>
-            {}
             <div className="mb-4 text-start d-flex justify-content-between align-items-center">
                 <div>
                     <h1 className="fw-bold m-0">Teniški kotiček</h1>
@@ -118,9 +117,7 @@ function Dashboard() {
                                             </Card.Title>
                                         </div>
                                     </div>
-                                    
                                     <hr className="border-secondary my-3" />
-                                    
                                     <div className="bg-secondary bg-opacity-10 p-3 rounded mb-4">
                                         <p className="mb-2"><strong>Tip opreme:</strong> Teniški lopar</p>
                                         <p className="mb-2"><strong>Čas izposoje:</strong> Danes (Aktivno)</p>
@@ -132,7 +129,6 @@ function Dashboard() {
                                         </p>
                                     </div>
                                 </div>
-
                                 <div className="mt-auto pt-2">
                                     <Button 
                                         variant="danger" 
@@ -146,7 +142,6 @@ function Dashboard() {
                             </Card.Body>
                         </Card>
                     </Col>
-
                     <Col xs={12} md={5}>
                         <Card bg="dark" text="white" className="border-0 shadow h-100 p-2">
                             <Card.Body className="d-flex flex-column justify-content-between">
@@ -164,7 +159,6 @@ function Dashboard() {
                                         </ListGroup.Item>
                                     </ListGroup>
                                 </div>
-
                                 <div className="mt-auto p-3 rounded text-center" style={{ background: "linear-gradient(135deg, #2c3e50, #0d6efd)" }}>
                                     <h5 className="fw-bold mb-1">Potrebuješ igrišče?</h5>
                                     <p className="small text-white-50 mb-3">Preveri proste termine in rezerviraj svojo uro.</p>
@@ -182,7 +176,6 @@ function Dashboard() {
                         <h3 className="fw-bold mb-2 text-white">Trenutno nimaš izposojenega nobenega loparja!</h3>
                         <p className="text-white-50 m-0">Izberi si enega izmed spodnjih razpoložljivih loparjev in začni z igro.</p>
                     </div>
-
                     <h4 className="fw-bold mb-3 text-white">Razpoložljivi loparji v omarici:</h4>
                     {rackets.length === 0 ? (
                         <Alert variant="secondary" className="text-center border-0 text-white-50 bg-dark">

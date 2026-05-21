@@ -2,6 +2,7 @@ var UserModel = require('../models/userModel.js');
 var ClubModel = require('../models/clubModel.js');
 var racketModel = require('../models/racketModel.js');
 const Club = require('../models/clubModel.js');
+const User = require('../models/userModel.js');
 
 /**
  * userController.js
