@@ -9,6 +9,16 @@ var Package = require('../models/packageModel.js');
  */
 module.exports = {
 
+    list: function(req,res){ 
+        ClubModel.find().exec(function(err,c){
+            if(err){
+                return res.status(500).json({error: "Server Error"});
+            }
+
+            return res.status(200).json(c);
+        })
+    },
+
     create: async function (req, res) {
         var username = req.body.clubName;
 
@@ -128,5 +138,15 @@ module.exports = {
                 });
             });
         });
+    },
+
+    joinClub: function(req,res){
+        UserModel.findByIdAndUpdate(req.session.userId, {role: 'clan', joinedClub: req.body.club_id}, {new: true}).exec(function(err,u){
+            if(err){
+                return res.status(500).json({error: "Couldn't join to the club"});
+            }
+
+            return res.status(200).json(u);
+        })
     }
 };

@@ -18,6 +18,10 @@ var userSchema = new Schema({
 	 	type: Schema.Types.ObjectId,
 	 	ref: 'racket'
 	},
+	'joinedClub' : {
+		type: Schema.Types.ObjectId,
+		ref: 'club'
+	}
 });
 
 userSchema.pre('save', function(next){
