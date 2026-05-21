@@ -190,7 +190,7 @@ function Dashboard(){
         <Container className="mt-5" style={{ maxWidth: "1000px" }}>
             <div className="mb-4 text-start d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 className="fw-bold m-0">Nadzorna plošča 👋</h1>
+                    <h1 className="fw-bold m-0">Loparji za isposojo</h1>
                     <p className="text-muted m-0">Uporabnik: {user?.username || "Igralec"}</p>
                 </div>
                 <Badge bg={user?.rented ? "warning" : "success"} className="p-2 fs-6">
@@ -255,7 +255,7 @@ function Dashboard(){
             ) : (
                 <div className="text-start">
                     <div className="bg-dark p-4 rounded mb-4 border border-secondary border-opacity-25 shadow-sm">
-                        <h3 className="fw-bold mb-2">Trenutno nimaš izposojenega nobenega loparja 🎒</h3>
+                        <h3 className="fw-bold mb-2 text-white">Trenutno nimaš izposojenega nobenega loparja 🎒</h3>
                     </div>
                     <h4 className="fw-bold mb-3 text-white">Razpoložljivi loparji:</h4>
                     <Row>
