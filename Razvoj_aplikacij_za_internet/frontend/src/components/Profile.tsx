@@ -229,25 +229,24 @@ function Profile() {
 
                         <p><strong>Uporabnik:</strong> {user.username || "Prijavljen"}</p>
                         <p>
-                            <strong>Status računa:</strong>{" "}
-                            {(user.role === "clan" || user.accountType === "club") ? (
-                                <span className="text-warning fw-bold">👑 Član kluba</span>
+                            <strong>Status racuna:</strong>{" "}
+                            {user.accountType === "club" ? (
+                                <span className="text-warning fw-bold">Klub</span>
+                            ) : user.role === "clan" ? (
+                                <span className="text-warning fw-bold">Clan kluba</span>
                             ) : (
-                                <span className="text-info fw-bold">🎾 Rekreativec</span>
+                                <span className="text-info fw-bold">Rekreativec</span>
                             )}
                         </p>
-                        
-                        {user.rented ? (
+
+                        {user.accountType !== "club" && user.rented && (
                             <Alert variant="info" className="mt-3 shadow-sm border-0 bg-info bg-opacity-25 text-black">
-                                <strong>Trenutno imaš izposojen lopar!</strong><br />
+                                <strong>Trenutno imas izposojen lopar!</strong><br />
                                 ID izposojenega loparja: <code className="text-black">{user.rented}</code><br />
-                                <small className="text-muted">Obišči omarico za prevzem.</small>
-                            </Alert>
-                        ) : (
-                            <Alert variant="secondary" className="mt-3 opacity-50 border-0">
-                                Nimate izposojenega nobenega loparja.
+                                <small className="text-muted">Obisci omarico za prevzem.</small>
                             </Alert>
                         )}
+
 
                         {user.accountType === "club" && (
                             <div className="p-3 border border-secondary rounded mt-4 bg-dark bg-opacity-50">
