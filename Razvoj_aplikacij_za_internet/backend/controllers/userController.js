@@ -1,6 +1,7 @@
 var UserModel = require('../models/userModel.js');
 var ClubModel = require('../models/clubModel.js');
 var racketModel = require('../models/racketModel.js');
+const Club = require('../models/clubModel.js');
 
 /**
  * userController.js
@@ -106,35 +107,46 @@ module.exports = {
     }
 },
 
-    returnRacket: async function (req, res) {
-    try {
-        if (!req.session || !req.session.userId) {
-            return res.status(401).json({ error: "Nisi prijavljen." });
-        }
-
+    returnRacket: function (req, res) {
         const userId = req.session.userId;
-        const user = await UserModel.findById(userId); 
-        
-        if (!user) {
-            return res.status(404).json({ error: "Uporabnik ni najden." });
-        }
+        const userType = req.session.userType;
 
-        if (user.rented) {
-            await racketModel.findByIdAndUpdate(user.rented, { rented: false });
-        }
-        user.rented = null;
-        await user.save();
+        const ActiveModel = (userType === 'club') ? Club : User;
 
-        if (req.session.user) {
-            req.session.user = user;
-        }
+        ActiveModel.findById(userId).exec(function (err, borrower) {
+            if (err) {
+                return res.status(500).json(err);
+            }
 
-        return res.json(user);
+            if (!borrower) {
+                return res.status(400).json({ message: "Uporabnik ali klub ni bil najden." });
+            }
 
-    } catch (err) {
-        console.error("Točna napaka na backendu:", err);
-        return res.status(500).json({ error: "Napaka na strežniku pri vračanju loparja." });
+            if (!borrower.rented) {
+                return res.status(400).json({ message: "Nimate izposojenega nobenega loparja." });
+            }
+
+            const racketId = borrower.rented;
+
+            racketModel.findByIdAndUpdate(racketId, { rented: false }, { new: true }).exec(function (err, updatedRacket) {
+                if (err) {
+                    return res.status(500).json(err);
+                }
+
+                ActiveModel.findByIdAndUpdate(
+                    userId,
+                    { $unset: { rented: "" } },
+                    { new: true }
+                ).exec(function (err, updatedBorrower) {
+                    if (err) {
+                        return res.status(500).json(err);
+                    }
+
+                    req.session.user = updatedBorrower;
+                    return res.status(200).json(updatedBorrower);
+                });
+            });
+        });
     }
-}
 };
 

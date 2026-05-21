@@ -34,21 +34,26 @@ function Racket(props: any){
         }
     };
     
-    async function handleRent(){
+    async function handleRent() {
         const res = new ServerRequest("rackets/rentRacket");
-        const data = await (await res.post({racket: props.racket._id})).json();
+        const responseObj = await res.post({ racket: props.racket._id });
+        const data = await responseObj.json();
 
-        console.log(data);
+        console.log("Odziv iz backenda:", data);
 
-        if(!data.message){
+        if (data.user || data.success || responseObj.status === 200) {            
             if (context && context.setUserContext && data.user) {
                 context.setUserContext(data.user);
             }
-            props.onRentSuccess();
+            
+            if (props.onRentSuccess) {
+                props.onRentSuccess();
+            }
+            
             alert("Lopar uspešno izposojen!");
-        }
-        else{
-            console.log("already rented!");
+        } else {
+            console.log("Izposoja ni uspela ali pa je lopar že zaseden:", data.message);
+            alert(data.error || data.message || "Prišlo je do napake pri izposoji.");
         }
     }
     return(

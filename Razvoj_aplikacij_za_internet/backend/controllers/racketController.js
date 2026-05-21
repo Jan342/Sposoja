@@ -323,54 +323,62 @@ list: async function (req, res) {
         }
     },
 
-    rent: function (req,res){
-        User.findById(req.session.userId).exec(function(err, u){
-            if(err){
+    rent: function (req, res) {
+        const userId = req.session.userId;
+        const userType = req.session.userType;
+
+        const ActiveModel = (userType === 'club') ? Club : User;
+
+        ActiveModel.findById(userId).exec(function (err, borrower) {
+            if (err) {
                 return res.status(500).json(err);
             }
 
-            if (!u) {
-                return res.status(400).json({ message: "Clubs cannot rent rackets, only recreational users can." });
+            if (!borrower) {
+                return res.status(400).json({ message: "Uporabnik ali klub ni bil najden." });
             }
 
-            if(u.rented){
+            if (borrower.rented) {
                 return res.status(400).json({ message: "Already rented" });
             }
 
-            else{
-                return racketModel.findById(req.body.racket).exec(function(err,r){
+            racketModel.findById(req.body.racket).exec(function (err, r) {
                 if (err) {
                     return res.status(500).json(err);
                 }
-                
-                if(!r.rented){
-                    r.rented = true;
-                    
-                    return r.save(function (err, updatedRacket) {
+
+                if (!r) {
+                    return res.status(404).json({ message: "Lopar ne obstaja." });
+                }
+
+                if (r.rented) {
+                    return res.status(400).json({ message: "Racket is rented by someone else" });
+                }
+
+                r.rented = true;
+
+                r.save(function (err, updatedRacket) {
+                    if (err) {
+                        return res.status(500).json(err);
+                    }
+
+                    ActiveModel.findByIdAndUpdate(
+                        userId,
+                        { rented: r._id },
+                        { new: true }
+                    ).exec(function (err, updatedBorrower) {
                         if (err) {
                             return res.status(500).json(err);
                         }
 
-                        User.findByIdAndUpdate(
-                            req.session.userId, 
-                            { rented: r._id }, 
-                            { new: true }
-                        ).exec(function (err, updatedUser) {
-                            if (err) {
-                                return res.status(500).json(err);
-                            }
-
-                            req.session.user = updatedUser;
-                            return res.status(200).json({
-                                racket: updatedRacket,
-                                user: updatedUser
-                            });
+                        req.session.user = updatedBorrower;
+                        return res.status(200).json({
+                            racket: updatedRacket,
+                            user: updatedBorrower
                         });
                     });
-                }
-                    return res.status(400).json({ message: "Racket is rented by someone else" });
-                })
-            }
-        })
+                });
+            });
+        });
     }
 };

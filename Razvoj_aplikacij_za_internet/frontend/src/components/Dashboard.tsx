@@ -12,7 +12,16 @@ function Dashboard() {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
-    async function refreshRackets() {
+    async function refreshRackets(updatedUser?: any) {
+        if (updatedUser) {
+            if (context && context.setUserContext) {
+                context.setUserContext(updatedUser);
+            } else if (context && (context as any).setUser) {
+                (context as any).setUser(updatedUser);
+            }
+            return;
+        }
+
         try {
             const res = await fetch("http://localhost:3001/rackets", {
                 credentials: "include"
@@ -20,20 +29,25 @@ function Dashboard() {
             
             if (res.ok) {
                 const data = await res.json();
-                console.log("Podatki, ki so prišli iz backenda:", data);
+                console.log("Podatki iz backenda:", data);
 
-                const freeRackets = data.filter((r: any) => r.rented === false || r.rented === undefined);
-                
-                setRackets(freeRackets);
+                let availableRackets = data.filter((r: any) => r.rented === false || r.rented === undefined);
+
+                if (user && (user.role === "club" || user.isClubMember)) {
+                    setRackets(availableRackets);
+                } else {
+                    const publicRackets = availableRackets.filter((r: any) => !r.isClubOnly);
+                    setRackets(publicRackets);
+                }
             } else {
                 console.error("Backend je vrnil status napake:", res.status);
             }
         } catch (err) {
-            console.error("Frontend sploh ne more doseči backenda:", err);
+            console.error("Frontend ne more doseči backenda:", err);
         }
     }
 
-    useEffect(() => {
+   useEffect(() => {
         if (user && !user.rented) {
             refreshRackets();
         }
