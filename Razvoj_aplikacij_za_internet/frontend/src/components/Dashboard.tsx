@@ -96,12 +96,10 @@ function Dashboard(){
             const data = await res.json();
             const contextAsAny = userContext as any;
             if (res.ok) {
-                postMessage("Lopar je bil uspešno vrnjen!");
+                setMessage("Lopar je bil uspešno vrnjen!");
             if (contextAsAny?.setUserContext) contextAsAny.setUserContext(data);
             else if (contextAsAny?.setUser) contextAsAny.setUser(data);
-            setTimeout(() => {
-                window.location.reload(); 
-            }, 1000);
+             refreshRackets();
             } else {
                 setError(data.error || "Vračanje loparja ni uspelo.");
             }
