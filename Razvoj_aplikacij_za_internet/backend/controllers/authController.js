@@ -18,6 +18,8 @@ module.exports = {
                     _id: club._id,
                     username: club.username,
                     clubName: club.clubName,
+                    profileImage: club.profileImage,
+                    packageCount: club.packageCount,
                     accountType: 'club'
                 });
             }

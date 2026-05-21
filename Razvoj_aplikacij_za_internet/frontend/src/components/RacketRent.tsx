@@ -12,6 +12,8 @@ type Package = {
     _id: string;
     name: string;
     location: string;
+    racketLimit: number;
+    racketTotal: number;
 };
 
 function RacketRent(){
@@ -20,6 +22,8 @@ function RacketRent(){
     const [remaining, setRemaining] = useState(0);
     const [packageName, setPackageName] = useState('');
     const [packageLocation, setPackageLocation] = useState('');
+    const [packageRacketLimit, setPackageRacketLimit] = useState('');
+    const [packageLimitInputs, setPackageLimitInputs] = useState<Record<string, string>>({});
     const [selectedPackage, setSelectedPackage] = useState('');
     const [model, setModel] = useState('');
     const [description, setDescription] = useState('');
@@ -36,6 +40,10 @@ function RacketRent(){
             setPackages(data.packages);
             setPackageCount(data.packageCount);
             setRemaining(data.remaining);
+            setPackageLimitInputs(data.packages.reduce((inputs: Record<string, string>, packageItem: Package) => {
+                inputs[packageItem._id] = String(packageItem.racketLimit);
+                return inputs;
+            }, {}));
 
             if (!selectedPackage && data.packages.length > 0) {
                 setSelectedPackage(data.packages[0]._id);
@@ -55,16 +63,33 @@ function RacketRent(){
         const res = new ServerRequest('rackets/packages');
         const data = await (await res.post({
             name: packageName,
-            location: packageLocation
+            location: packageLocation,
+            racketLimit: Number(packageRacketLimit)
         })).json();
 
         if (data._id) {
             setPackageName('');
             setPackageLocation('');
+            setPackageRacketLimit('');
             setMessage('Paketnik je bil dodan.');
             await loadPackages();
         } else {
             setError(data.message || 'Paketnika ni bilo mogoce dodati.');
+        }
+    }
+
+    async function updatePackageLimit(packageId: string) {
+        setMessage('');
+        setError('');
+
+        const res = new ServerRequest(`rackets/packages/${packageId}/limit`);
+        const data = await (await res.setBody({ racketLimit: Number(packageLimitInputs[packageId]) }).put()).json();
+
+        if (data._id) {
+            setMessage('Stevilo loparjev za paketnik je posodobljeno.');
+            await loadPackages();
+        } else {
+            setError(data.message || 'Stevila loparjev ni bilo mogoce spremeniti.');
         }
     }
 
@@ -104,10 +129,16 @@ function RacketRent(){
                 fileInputRef.current.value = '';
             }
             setMessage('Lopar je bil dodan v paketnik.');
+            await loadPackages();
         } else {
             setError(data.message || 'Loparja ni bilo mogoce dodati.');
         }
     }
+
+    const selectedPackageData = packages.find((packageItem) => packageItem._id === selectedPackage);
+    const selectedPackageFull = selectedPackageData
+        ? selectedPackageData.racketTotal >= selectedPackageData.racketLimit
+        : false;
 
     return(
         <Container className="py-4">
@@ -123,6 +154,27 @@ function RacketRent(){
                             <div key={packageItem._id} className="border rounded p-2 mb-2">
                                 <strong>{packageItem.name}</strong>
                                 <div>{packageItem.location}</div>
+                                <div>
+                                    Loparji: {packageItem.racketTotal} / {packageItem.racketLimit}
+                                </div>
+                                <div className="d-flex gap-2 mt-2">
+                                    <Form.Control
+                                        type="number"
+                                        min={packageItem.racketTotal}
+                                        value={packageLimitInputs[packageItem._id] ?? String(packageItem.racketLimit)}
+                                        onChange={(e) => setPackageLimitInputs({
+                                            ...packageLimitInputs,
+                                            [packageItem._id]: e.target.value
+                                        })}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline-primary"
+                                        onClick={() => updatePackageLimit(packageItem._id)}
+                                    >
+                                        Shrani
+                                    </Button>
+                                </div>
                             </div>
                         ))}
 
@@ -146,6 +198,18 @@ function RacketRent(){
                                         placeholder="Vnesi lokacijo"
                                         value={packageLocation}
                                         onChange={(e) => setPackageLocation(e.target.value)}
+                                        required
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Stevilo loparjev v paketniku</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        min="0"
+                                        placeholder="Vnesi stevilo loparjev"
+                                        value={packageRacketLimit}
+                                        onChange={(e) => setPackageRacketLimit(e.target.value)}
                                         required
                                     />
                                 </Form.Group>
@@ -214,9 +278,14 @@ function RacketRent(){
                                 />
                             </Form.Group>
 
-                            <Button variant="primary" type="submit" className="w-100" disabled={packages.length === 0}>
+                            <Button variant="primary" type="submit" className="w-100" disabled={packages.length === 0 || selectedPackageFull}>
                                 Dodaj lopar
                             </Button>
+                            {selectedPackageFull && (
+                                <Alert variant="warning" className="mt-3">
+                                    Izbrani paketnik je ze poln. Povecaj stevilo loparjev za ta paketnik.
+                                </Alert>
+                            )}
                         </Form>
                     </Card>
                 </Col>

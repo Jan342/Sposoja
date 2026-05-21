@@ -63,10 +63,32 @@ module.exports = {
                     return res.status(404).json({ message: "Club not found" });
                 }
 
-                return res.json({
-                    packages: packages,
-                    packageCount: club.packageCount,
-                    remaining: Math.max(club.packageCount - packages.length, 0)
+                racketModel.aggregate([
+                    { $match: { package: { $in: packages.map(function(packageItem) { return packageItem._id; }) } } },
+                    { $group: { _id: "$package", racketTotal: { $sum: 1 } } }
+                ]).exec(function(err, racketCounts) {
+                    if (err) {
+                        return res.status(500).json({
+                            message: "Error when counting rackets",
+                            error: err
+                        });
+                    }
+
+                    var packageData = packages.map(function(packageItem) {
+                        var count = racketCounts.find(function(racketCount) {
+                            return String(racketCount._id) === String(packageItem._id);
+                        });
+
+                        var packageObject = packageItem.toObject();
+                        packageObject.racketTotal = count ? count.racketTotal : 0;
+                        return packageObject;
+                    });
+
+                    return res.json({
+                        packages: packageData,
+                        packageCount: club.packageCount,
+                        remaining: Math.max(club.packageCount - packages.length, 0)
+                    });
                 });
             });
         });
@@ -79,6 +101,12 @@ module.exports = {
 
         if (!req.body.name || !req.body.location) {
             return res.status(400).json({ message: "Package name and location are required" });
+        }
+
+        var racketLimit = Number(req.body.racketLimit);
+
+        if (!Number.isInteger(racketLimit) || racketLimit < 0) {
+            return res.status(400).json({ message: "Racket limit must be a positive whole number" });
         }
 
         Club.findById(req.session.userId).exec(function(err, club) {
@@ -108,6 +136,7 @@ module.exports = {
                 var package = new Package({
                     name: req.body.name,
                     location: req.body.location,
+                    racketLimit: racketLimit,
                     club: club._id
                 });
 
@@ -120,6 +149,64 @@ module.exports = {
                     }
 
                     return res.status(201).json(savedPackage);
+                });
+            });
+        });
+    },
+
+    updatePackageLimit: function(req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ message: "Only clubs can update packages" });
+        }
+
+        var racketLimit = Number(req.body.racketLimit);
+
+        if (!Number.isInteger(racketLimit) || racketLimit < 0) {
+            return res.status(400).json({ message: "Racket limit must be a positive whole number" });
+        }
+
+        Package.findOne({ _id: req.params.id, club: req.session.userId }).exec(function(err, packageItem) {
+            if (err) {
+                return res.status(500).json({
+                    message: "Error when getting package",
+                    error: err
+                });
+            }
+
+            if (!packageItem) {
+                return res.status(404).json({ message: "Package not found" });
+            }
+
+            racketModel.countDocuments({ package: packageItem._id }).exec(function(err, racketTotal) {
+                if (err) {
+                    return res.status(500).json({
+                        message: "Error when counting rackets",
+                        error: err
+                    });
+                }
+
+                if (racketLimit < racketTotal) {
+                    return res.status(400).json({
+                        message: "Racket limit cannot be lower than the number of existing rackets"
+                    });
+                }
+
+                packageItem.racketLimit = racketLimit;
+                packageItem.save(function(err, savedPackage) {
+                    if (err) {
+                        return res.status(500).json({
+                            message: "Error when updating package",
+                            error: err
+                        });
+                    }
+
+                    return res.json({
+                        _id: savedPackage._id,
+                        name: savedPackage.name,
+                        location: savedPackage.location,
+                        racketLimit: savedPackage.racketLimit,
+                        racketTotal: racketTotal
+                    });
                 });
             });
         });
@@ -160,16 +247,29 @@ module.exports = {
                 return res.status(404).json({ message: "Package not found" });
             }
 
-            racket.save(function (err, photo) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when creating racket',
-                    error: err
-                });
-            }
+            racketModel.countDocuments({ package: package._id }).exec(function(err, racketTotal) {
+                if (err) {
+                    return res.status(500).json({
+                        message: "Error when counting rackets",
+                        error: err
+                    });
+                }
 
-            return res.status(201).json(racket);
-        });
+                if (racketTotal >= package.racketLimit) {
+                    return res.status(400).json({ message: "Racket limit reached for this package" });
+                }
+
+                racket.save(function (err, photo) {
+                if (err) {
+                    return res.status(500).json({
+                        message: 'Error when creating racket',
+                        error: err
+                    });
+                }
+
+                return res.status(201).json(racket);
+            });
+            });
         })
     },
 

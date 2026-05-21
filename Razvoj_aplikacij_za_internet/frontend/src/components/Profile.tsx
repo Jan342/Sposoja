@@ -1,4 +1,4 @@
-import { type FormEvent, useContext, useState, type ChangeEvent } from "react";
+import { type FormEvent, useContext, useEffect, useState, type ChangeEvent } from "react";
 import { UserContext } from "../contexts/userContext";
 import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 
@@ -12,9 +12,33 @@ function Profile() {
     const [showPasswordForm, setShowPasswordForm] = useState(false);
 
     const [imageBase64, setImageBase64] = useState<string | null>(null);
+    const [packageCount, setPackageCount] = useState("");
+    const [currentPackageCount, setCurrentPackageCount] = useState(0);
+    const [showClubSettings, setShowClubSettings] = useState(false);
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+
+    useEffect(function() {
+        if (!user || user.accountType !== "club") {
+            return;
+        }
+
+        const loadClubSettings = async function() {
+            const res = await fetch("http://localhost:3001/users/clubSettings", {
+                method: "GET",
+                credentials: "include"
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                setPackageCount(String(data.packageCount));
+                setCurrentPackageCount(data.currentPackageCount);
+            }
+        };
+
+        loadClubSettings();
+    }, [user]);
 
     function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
         if (e.target.files && e.target.files.length > 0) {
@@ -111,6 +135,32 @@ function Profile() {
         setShowPasswordForm(false);
     }
 
+    async function updateClubSettings(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        setMessage("");
+        setError("");
+
+        const res = await fetch("http://localhost:3001/users/clubSettings", {
+            method: "PUT",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ packageCount: Number(packageCount) })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            setMessage("Stevilo dovoljenih paketnikov je posodobljeno.");
+            setShowClubSettings(false);
+
+            if (context && context.setUserContext) {
+                context.setUserContext(data);
+            }
+        } else {
+            setError(data.error || "Stevila paketnikov ni bilo mogoce spremeniti.");
+        }
+    }
+
     const userInitial = user && user.username 
         ? user.username.charAt(0).toUpperCase() 
         : "U";
@@ -197,6 +247,56 @@ function Profile() {
                             <Alert variant="secondary" className="mt-3 opacity-50 border-0">
                                 Nimate izposojenega nobenega loparja.
                             </Alert>
+                        )}
+
+                        {user.accountType === "club" && (
+                            <div className="p-3 border border-secondary rounded mt-4 bg-dark bg-opacity-50">
+                                <div className="d-flex justify-content-between align-items-center gap-3">
+                                    <div>
+                                        <h4 className="mb-1">Nastavitve kluba</h4>
+                                        <div>
+                                            Paketniki: {currentPackageCount} / {packageCount || 0}
+                                        </div>
+                                    </div>
+                                    {!showClubSettings && (
+                                        <Button
+                                            type="button"
+                                            variant="outline-light"
+                                            onClick={() => setShowClubSettings(true)}
+                                        >
+                                            Spremeni
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {showClubSettings && (
+                                    <Form onSubmit={updateClubSettings} className="mt-3">
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Stevilo dovoljenih paketnikov</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                min={currentPackageCount}
+                                                value={packageCount}
+                                                onChange={(e) => setPackageCount(e.target.value)}
+                                                required
+                                                className="bg-dark text-white border-secondary"
+                                            />
+                                            <Form.Text className="text-light opacity-75">
+                                                Ne more biti manjse od trenutnega stevila paketnikov.
+                                            </Form.Text>
+                                        </Form.Group>
+
+                                        <div className="d-flex gap-2 justify-content-end">
+                                            <Button type="button" variant="secondary" onClick={() => setShowClubSettings(false)}>
+                                                Preklici
+                                            </Button>
+                                            <Button type="submit" variant="primary">
+                                                Shrani
+                                            </Button>
+                                        </div>
+                                    </Form>
+                                )}
+                            </div>
                         )}
                         
                         {!showPasswordForm && (

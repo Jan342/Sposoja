@@ -19,6 +19,7 @@ function requiresLogin(req, res, next){
 router.get('/',racketController.list);
 router.get('/packages', requiresLogin, racketController.listPackages);
 router.post('/packages', requiresLogin, racketController.createPackage);
+router.put('/packages/:id/limit', requiresLogin, racketController.updatePackageLimit);
 router.post('/addRacket', requiresLogin, upload.single('image'), racketController.create);
 router.delete('/:id', requiresLogin, racketController.remove);
 router.post('/rentRacket', requiresLogin, racketController.rent);

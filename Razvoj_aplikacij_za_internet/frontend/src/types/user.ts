@@ -9,6 +9,8 @@ export interface Club {
   _id: string;
   username: string;
   clubName: string;
+  profileImage?: string;
+  packageCount?: number;
   role: string;
   accountType: "club"
 }

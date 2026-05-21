@@ -1,5 +1,6 @@
 var ClubModel = require('../models/clubModel.js');
 var UserModel = require('../models/userModel.js');
+var Package = require('../models/packageModel.js');
 
 /**
  * clubController.js
@@ -50,5 +51,82 @@ module.exports = {
                 error: err
             });
         }
+    },
+
+    settings: function(req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ error: "Only clubs can view club settings" });
+        }
+
+        ClubModel.findById(req.session.userId).exec(function(err, club) {
+            if (err) {
+                return res.status(500).json({ error: "Error when finding club" });
+            }
+
+            if (!club) {
+                return res.status(404).json({ error: "Club not found" });
+            }
+
+            Package.countDocuments({ club: club._id }).exec(function(err, packageTotal) {
+                if (err) {
+                    return res.status(500).json({ error: "Error when counting packages" });
+                }
+
+                return res.json({
+                    packageCount: club.packageCount,
+                    currentPackageCount: packageTotal
+                });
+            });
+        });
+    },
+
+    updateSettings: function(req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ error: "Only clubs can update club settings" });
+        }
+
+        var packageCount = Number(req.body.packageCount);
+
+        if (!Number.isInteger(packageCount) || packageCount < 0) {
+            return res.status(400).json({ error: "Package count must be a positive whole number" });
+        }
+
+        ClubModel.findById(req.session.userId).exec(function(err, club) {
+            if (err) {
+                return res.status(500).json({ error: "Error when finding club" });
+            }
+
+            if (!club) {
+                return res.status(404).json({ error: "Club not found" });
+            }
+
+            Package.countDocuments({ club: club._id }).exec(function(err, packageTotal) {
+                if (err) {
+                    return res.status(500).json({ error: "Error when counting packages" });
+                }
+
+                if (packageCount < packageTotal) {
+                    return res.status(400).json({
+                        error: "Package count cannot be lower than the number of existing packages"
+                    });
+                }
+
+                club.packageCount = packageCount;
+                club.save(function(err, savedClub) {
+                    if (err) {
+                        return res.status(500).json({ error: "Error when updating club settings" });
+                    }
+
+                    return res.json({
+                        _id: savedClub._id,
+                        username: savedClub.username,
+                        clubName: savedClub.clubName,
+                        profileImage: savedClub.profileImage,
+                        packageCount: savedClub.packageCount,
+                        accountType: 'club'
+                    });
+                });
+            });
+        });
     }
 };
