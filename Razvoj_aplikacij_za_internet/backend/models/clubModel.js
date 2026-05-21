@@ -11,10 +11,6 @@ var clubSchema = new Schema({
     'profileImage': String,
     'packageCount': Number,
     'password': String,
-    'rented': {
-        type: Schema.Types.ObjectId,
-        ref: 'racket'
-    }
 });
 
 clubSchema.pre('save', function(next) {
