@@ -10,7 +10,7 @@ var clubSchema = new Schema({
     'address': String,
     'profileImage': String,
     'packageCount': Number,
-    'password': String
+    'password': String,
 });
 
 clubSchema.pre('save', function(next) {
