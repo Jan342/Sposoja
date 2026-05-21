@@ -1,5 +1,7 @@
 const racketModel = require('../models/racketModel.js');
 const User = require('../models/userModel.js');
+const Club = require('../models/clubModel.js');
+const Package = require('../models/packageModel.js');
 
 /**
  * photoController.js
@@ -11,7 +13,10 @@ module.exports = {
     list: function (req, res) {
     var targetOwner = 'rekreativec';
 
-    if (req.session && req.session.userId) {
+    if (req.session && req.session.userType === 'club') {
+        targetOwner = 'klub';
+        fetchRackets(targetOwner, res);
+    } else if (req.session && req.session.userId) {
         User.findById(req.session.userId, function (err, user) {
             if (user && user.role === 'clan') {
                 targetOwner = 'klub';
@@ -32,16 +37,118 @@ module.exports = {
         });
     }
 },
+    listPackages: function(req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ message: "Only clubs can view packages" });
+        }
+
+        Package.find({ club: req.session.userId })
+        .exec(function(err, packages) {
+            if (err) {
+                return res.status(500).json({
+                    message: "Error when getting packages",
+                    error: err
+                });
+            }
+
+            Club.findById(req.session.userId).exec(function(err, club) {
+                if (err) {
+                    return res.status(500).json({
+                        message: "Error when getting club",
+                        error: err
+                    });
+                }
+
+                if (!club) {
+                    return res.status(404).json({ message: "Club not found" });
+                }
+
+                return res.json({
+                    packages: packages,
+                    packageCount: club.packageCount,
+                    remaining: Math.max(club.packageCount - packages.length, 0)
+                });
+            });
+        });
+    },
+
+    createPackage: function(req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ message: "Only clubs can add packages" });
+        }
+
+        if (!req.body.name || !req.body.location) {
+            return res.status(400).json({ message: "Package name and location are required" });
+        }
+
+        Club.findById(req.session.userId).exec(function(err, club) {
+            if (err) {
+                return res.status(500).json({
+                    message: "Error when getting club",
+                    error: err
+                });
+            }
+
+            if (!club) {
+                return res.status(404).json({ message: "Club not found" });
+            }
+
+            Package.countDocuments({ club: club._id }).exec(function(err, packageTotal) {
+                if (err) {
+                    return res.status(500).json({
+                        message: "Error when counting packages",
+                        error: err
+                    });
+                }
+
+                if (packageTotal >= club.packageCount) {
+                    return res.status(400).json({ message: "Package limit reached" });
+                }
+
+                var package = new Package({
+                    name: req.body.name,
+                    location: req.body.location,
+                    club: club._id
+                });
+
+                package.save(function(err, savedPackage) {
+                    if (err) {
+                        return res.status(500).json({
+                            message: "Error when creating package",
+                            error: err
+                        });
+                    }
+
+                    return res.status(201).json(savedPackage);
+                });
+            });
+        });
+    },
+
     create: function (req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ message: "Only clubs can add rackets" });
+        }
+
+        if (!req.body.packageId) {
+            return res.status(400).json({ message: "Package is required" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: "Image is required" });
+        }
+
         var racket = new racketModel({
 			model : req.body.name,
 			path : "/images/"+req.file.filename,
             description: req.body.description,
             rated: 0,
             rented: false,
+            package: req.body.packageId,
+            owner: 'klub'
         });
 
-        User.findById(req.session.userId).exec(function(err,r){
+        Package.findOne({ _id: req.body.packageId, club: req.session.userId }).exec(function(err, package){
             if (err) {
                 return res.status(500).json({
                     message: "DB error",
@@ -49,8 +156,8 @@ module.exports = {
                 });
             }
             
-            if (r) {
-                return res.status(401).json({ message: "Unauthorized" });
+            if (!package) {
+                return res.status(404).json({ message: "Package not found" });
             }
 
             racket.save(function (err, photo) {
