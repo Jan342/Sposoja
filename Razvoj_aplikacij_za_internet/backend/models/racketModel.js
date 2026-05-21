@@ -12,6 +12,10 @@ var racketSchema = new Schema({
 	 	ref: 'user'
 	},*/
     'path' : String,
+    'package': {
+        type: Schema.Types.ObjectId,
+        ref: 'package'
+    },
     'rented': Boolean,
     'owner': { type: String,
         enum: ['klub', 'rekreativec'],

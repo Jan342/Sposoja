@@ -1,6 +1,6 @@
 import { useEffect, useContext } from 'react';
 import { UserContext } from '../contexts/userContext';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Logout(){
     const userContext = useContext(UserContext); 
