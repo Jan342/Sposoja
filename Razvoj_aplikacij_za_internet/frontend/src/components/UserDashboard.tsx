@@ -4,7 +4,6 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
-import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import { ServerRequest } from "../types/ServerRequest";
 import { UserContext } from "../contexts/userContext";
@@ -22,42 +21,77 @@ type ClubData = {
     packageCount: Number;
 }
 
+type RacketData = {
+    _id: string;
+    model: string;
+    description?: string;
+    rated?: number;
+    path?: string;
+    rented?: boolean;
+    owner?: string;
+};
+
 function UserDashboard(){
     const userContext = useContext(UserContext);
     const [clubs, setClubs] = useState<ClubData[]>([]);
+    const [rackets, setRackets] = useState<RacketData[]>([]);
     const [selectedClub, setSelectedClub] = useState<ClubData | null>(null);
     const [showPopup, setShowPopup] = useState(false);
-    const [joinedClub, setJoinClub] = useState(false);
+    const [reload, setReload] = useState(false);
     const nav = useNavigate();
-    /*const isClub = userContext.user?.accountType === "club";
-    const [rackets, setRackets] = useState<RacketData[]>([]);
-    const [packages, setPackages] = useState<Package[]>([]);
-    const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-    const [packageRackets, setPackageRackets] = useState<RacketData[]>([]);
-    const [reload, setReload] = useState(false);*/
 
     useEffect(function(){
-        const loadClubs = async function(){
-            const res = new ServerRequest(`clubs`);
-            const data = await (await res.get()).json();
-            setClubs(data || []);
-        };
+        if(userContext.user.role == 'rekreativec'){
+            const loadClubs = async function(){
+                const res = new ServerRequest(`clubs`);
+                const data = await (await res.get()).json();
+                setClubs(data || []);
+            };
+            loadClubs();
+        }
+        
+        else{
+            /*const loadRackets = async function(){
+                const res = new ServerRequest(`clubs/clubRackets`);
+                const data = await (await res.get()).json();
+                setRackets(data || []);
+            };
+            loadRackets();*/
 
-        loadClubs();
-    }, []);
+            //Pridobi loparje glede na klub za clana :)
+        }
+    }, [userContext.user.role]);
 
     async function joinClub(club: ClubData){
-        setShowPopup(false);
+        setSelectedClub(null)
         const res = new ServerRequest('clubs/joinClub');
         const data = await (await res.post({club_id: club._id})).json();
-        console.log(data);
+        if(data && userContext.user?.accountType === "user"){
+            userContext.user.joinedClub = club._id;
+            userContext.user.role = "clan";
+        }
     }
 
-    /*const refreshRackets = () => {
+    const refreshRackets = () => {
         setReload(prev => !prev);
-    };*/
+    };
 
+    if(userContext?.user?.joinedClub){
+        return (
+            <Container>
+                <Row>
+                    {rackets.map((racket: any) => (
+                    <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
+                        <Racket racket={racket} onRentSuccess={refreshRackets}/>
+                    </Col>
+                    ))}
+                </Row>
+            </Container>
+        )
+    }
+    
     return(
+        <>
         <Row>
             {clubs.map((club) => (
                 <Col key={club._id} xs={12} md={6} className="mb-4">
@@ -71,20 +105,21 @@ function UserDashboard(){
                             <Card.Title>{club.clubName}</Card.Title>
                             <div className="d-flex gap-3">
                                 <Button onClick={() => nav(`/clubs/${club._id}`)}>Podrobnosti</Button>
-                                <Button onClick={() => setShowPopup(true)}>Včlani se</Button>
+                                <Button onClick={() => setSelectedClub(club)}>Včlani se</Button>
                             </div>
                         </Card.Body>
                     </Card>
-
-                    <ConfirmPopUp
-                        show={showPopup}
-                        text="Ali se res želiš včlaniti?"
-                        onClose={() => setShowPopup(false)}
-                        onConfirm={() => joinClub(club)}
-                    />
                 </Col>
             ))}
         </Row>
+
+        <ConfirmPopUp
+            show={selectedClub !== null}
+            text="Ali se želite včlaniti?"
+            onClose={() => setShowPopup(false)}
+            onConfirm={() => joinClub(selectedClub)}
+        />
+    </>
     );
 }
 

@@ -38,8 +38,6 @@ function Racket(props: any){
         const res = new ServerRequest("rackets/rentRacket");
         const data = await (await res.post({racket: props.racket._id})).json();
 
-        console.log(data);
-
         if(!data.message){
             if (context && context.setUserContext && data.user) {
                 context.setUserContext(data.user);
@@ -67,7 +65,7 @@ function Racket(props: any){
                 <div className="d-flex gap-2 mt-3">
           
                     <Button variant="outline-light" size="sm" onClick={() => navigate(`/racket/${props.racket._id}`)}>
-                        Detajli
+                        Podrobnosti
                     </Button>
 
                     <Button variant="primary" size="sm" onClick={handleRent}>

@@ -15,6 +15,7 @@ function requiresLogin(req, res, next){
     }
 }
 
+router.get('/clubRackets',requiresLogin,clubController.getclubRackets)
 router.get('/', requiresLogin, clubController.list);
 router.post('/joinClub', requiresLogin, clubController.joinClub);
 
