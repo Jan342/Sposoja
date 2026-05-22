@@ -16,6 +16,7 @@ router.post('/login', authController.login);
 router.post('/changePassword', authController.changePassword);
 router.get('/logout', authController.logout);
 router.post('/uploadProfileImage', userController.uploadProfileImage);
+router.post('/returnRacket', userController.returnRacket);
 router.get('/clubSettings', clubController.settings);
 router.put('/clubSettings', clubController.updateSettings);
 
