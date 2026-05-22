@@ -27,6 +27,9 @@ function RacketRent(){
     const [selectedPackage, setSelectedPackage] = useState('');
     const [model, setModel] = useState('');
     const [description, setDescription] = useState('');
+    
+    const [targetAudience, setTargetAudience] = useState('rekreativec'); 
+    
     const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
@@ -113,6 +116,7 @@ function RacketRent(){
         formData.append('name', model);
         formData.append('image', file);
         formData.append('description', description);
+        formData.append('owner', targetAudience); 
 
         const res = await fetch('http://localhost:3001/rackets/addRacket', {
             method: 'POST',
@@ -125,10 +129,11 @@ function RacketRent(){
             setModel('');
             setDescription('');
             setFile(null);
+            setTargetAudience('rekreativec');
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
-            setMessage('Lopar je bil dodan v paketnik.');
+            setMessage('Lopar je bil uspešno dodan v paketnik.');
             await loadPackages();
         } else {
             setError(data.message || 'Loparja ni bilo mogoce dodati.');
@@ -144,22 +149,23 @@ function RacketRent(){
         <Container className="py-4">
             <Row className="g-4">
                 <Col lg={5}>
-                    <Card className="p-4 shadow-sm">
-                        <h4>Paketniki</h4>
-                        <p className="mb-3">
+                    <Card className="p-4 shadow-sm border-0 bg-dark text-white">
+                        <h4>Paketniki 📦</h4>
+                        <p className="text-white-50">
                             Dodani paketniki: {packages.length} / {packageCount}
                         </p>
 
                         {packages.map((packageItem) => (
-                            <div key={packageItem._id} className="border rounded p-2 mb-2">
-                                <strong>{packageItem.name}</strong>
-                                <div>{packageItem.location}</div>
-                                <div>
-                                    Loparji: {packageItem.racketTotal} / {packageItem.racketLimit}
+                            <div key={packageItem._id} className="border border-secondary rounded p-3 mb-2 bg-secondary bg-opacity-10">
+                                <strong className="text-primary">{packageItem.name}</strong>
+                                <div className="small text-white-50">{packageItem.location}</div>
+                                <div className="mt-1">
+                                    Loparji: <span className="fw-bold">{packageItem.racketTotal} / {packageItem.racketLimit}</span>
                                 </div>
                                 <div className="d-flex gap-2 mt-2">
                                     <Form.Control
                                         type="number"
+                                        className="bg-dark text-white border-secondary"
                                         min={packageItem.racketTotal}
                                         value={packageLimitInputs[packageItem._id] ?? String(packageItem.racketLimit)}
                                         onChange={(e) => setPackageLimitInputs({
@@ -169,7 +175,8 @@ function RacketRent(){
                                     />
                                     <Button
                                         type="button"
-                                        variant="outline-primary"
+                                        variant="primary"
+                                        size="sm"
                                         onClick={() => updatePackageLimit(packageItem._id)}
                                     >
                                         Shrani
@@ -179,7 +186,8 @@ function RacketRent(){
                         ))}
 
                         {remaining > 0 ? (
-                            <Form onSubmit={addPackage} className="mt-3">
+                            <Form onSubmit={addPackage} className="mt-3 pt-3 border-top border-secondary">
+                                <h5>Dodaj nov paketnik</h5>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Ime paketnika</Form.Label>
                                     <Form.Control
@@ -214,12 +222,12 @@ function RacketRent(){
                                     />
                                 </Form.Group>
 
-                                <Button variant="primary" type="submit" className="w-100">
-                                    Dodaj paketnik
+                                <Button variant="success" type="submit" className="w-100 fw-bold">
+                                    ➕ Dodaj paketnik
                                 </Button>
                             </Form>
                         ) : (
-                            <Alert variant="info" className="mt-3">
+                            <Alert variant="info" className="mt-3 bg-opacity-20 text-white border-info bg-info">
                                 Dodal si vse paketnike, ki si jih navedel pri registraciji.
                             </Alert>
                         )}
@@ -227,19 +235,20 @@ function RacketRent(){
                 </Col>
 
                 <Col lg={7}>
-                    <Card className="p-4 shadow-sm">
-                        <h4>Dodaj lopar v paketnik</h4>
-                        <Form onSubmit={addRacket}>
+                    <Card className="p-4 shadow-sm border-0 bg-dark text-white">
+                        <h4>Dodaj lopar v paketnik 🎾</h4>
+                        <Form onSubmit={addRacket} className="mt-3">
                             <Form.Group className="mb-3">
                                 <Form.Label>Paketnik</Form.Label>
                                 <Form.Select
+                                    className="bg-dark text-white border-secondary"
                                     value={selectedPackage}
                                     onChange={(e) => setSelectedPackage(e.target.value)}
                                     required
                                 >
                                     <option value="">Izberi paketnik</option>
                                     {packages.map((packageItem) => (
-                                        <option key={packageItem._id} value={packageItem._id}>
+                                        <option key={packageItem._id} value={packageItem._id} className="bg-dark text-white">
                                             {packageItem.name} - {packageItem.location}
                                         </option>
                                     ))}
@@ -250,11 +259,38 @@ function RacketRent(){
                                 <Form.Label>Model loparja</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Vnesi model loparja"
+                                    className="bg-dark text-white border-secondary"
+                                    placeholder="Npr. Wilson Blade, Babolat Pure Drive..."
                                     value={model}
                                     onChange={(e) => setModel(e.target.value)}
                                     required
                                 />
+                            </Form.Group>
+
+                            <Form.Group className="mb-3 p-3 border border-secondary rounded bg-secondary bg-opacity-10">
+                                <Form.Label className="fw-bold text-warning mb-2 d-block">Namen uporabe opreme</Form.Label>
+                                <div className="d-flex gap-4">
+                                    <Form.Check
+                                        type="radio"
+                                        id="target-rekreativec"
+                                        label="👥 Za rekreativce"
+                                        name="targetAudience"
+                                        value="rekreativec"
+                                        checked={targetAudience === 'rekreativec'}
+                                        onChange={(e) => setTargetAudience(e.target.value)}
+                                        className="fw-semibold"
+                                    />
+                                    <Form.Check
+                                        type="radio"
+                                        id="target-klub"
+                                        label="🏢 Za člane kluba"
+                                        name="targetAudience"
+                                        value="klub"
+                                        checked={targetAudience === 'klub'}
+                                        onChange={(e) => setTargetAudience(e.target.value)}
+                                        className="fw-semibold"
+                                    />
+                                </div>
                             </Form.Group>
 
                             <Form.Group className="mb-3">
@@ -262,7 +298,8 @@ function RacketRent(){
                                 <Form.Control
                                     as="textarea"
                                     rows={3}
-                                    placeholder="Vnesi opis modela"
+                                    className="bg-dark text-white border-secondary"
+                                    placeholder="Vnesi specifikacije, težavo, težo, oprijem..."
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                 />
@@ -272,17 +309,24 @@ function RacketRent(){
                                 <Form.Label>Izberi sliko loparja</Form.Label>
                                 <Form.Control
                                     type="file"
+                                    className="bg-dark text-white border-secondary"
                                     ref={fileInputRef}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)}
                                     required
                                 />
                             </Form.Group>
 
-                            <Button variant="primary" type="submit" className="w-100" disabled={packages.length === 0 || selectedPackageFull}>
-                                Dodaj lopar
+                            <Button 
+                                variant="primary" 
+                                type="submit" 
+                                className="w-100 fw-bold py-2 shadow-sm" 
+                                disabled={packages.length === 0 || selectedPackageFull}
+                            >
+                                🚀 Dodaj lopar v sistem
                             </Button>
+
                             {selectedPackageFull && (
-                                <Alert variant="warning" className="mt-3">
+                                <Alert variant="warning" className="mt-3 text-dark">
                                     Izbrani paketnik je ze poln. Povecaj stevilo loparjev za ta paketnik.
                                 </Alert>
                             )}
@@ -291,9 +335,9 @@ function RacketRent(){
                 </Col>
             </Row>
 
-            {message && <Alert variant="success" className="mt-3">{message}</Alert>}
-            {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+            {message && <Alert variant="success" className="mt-3 shadow-sm border-0">{message}</Alert>}
+            {error && <Alert variant="danger" className="mt-3 shadow-sm border-0">{error}</Alert>}
         </Container>
     )
 }
-export default RacketRent
+export default RacketRent;

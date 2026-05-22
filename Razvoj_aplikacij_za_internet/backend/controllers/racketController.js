@@ -10,33 +10,28 @@ const Package = require('../models/packageModel.js');
  */
 module.exports = {
 
-    list: function (req, res) {
-    var targetOwner = 'rekreativec';
+list: async function (req, res) {
+    try {
+        let query = { owner: "rekreativec", rented: false };
 
-    if (req.session && req.session.userType === 'club') {
-        targetOwner = 'klub';
-        fetchRackets(targetOwner, res);
-    } else if (req.session && req.session.userId) {
-        User.findById(req.session.userId, function (err, user) {
-            if (user && user.role === 'clan') {
-                targetOwner = 'klub';
-            }
-            fetchRackets(targetOwner, res);
-        });
-    } else {
-        fetchRackets(targetOwner, res);
-    }
+        if (req.session && req.session.userId && req.session.userType === 'club') {
+            const clubPackages = await Package.find({ club: req.session.userId });
+            const packageIds = clubPackages.map(p => p._id);
 
-    function fetchRackets(ownerType, res) {
-        racketModel.find({ rented: false, owner: ownerType })
-        .exec(function (err, rackets) {
-            if (err) {
-                return res.status(500).json({ message: 'Error when getting racket.', error: err });
-            }
-            return res.json(rackets);
+            query = { package: { $in: packageIds } }; 
+        }
+
+        var rackets = await racketModel.find(query);
+        return res.json(rackets);
+
+    } catch (err) {
+        return res.status(500).json({
+            message: 'Error when getting rackets.',
+            error: err.message
         });
     }
 },
+
     listPackages: function(req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can view packages" });
@@ -258,15 +253,14 @@ module.exports = {
         if (!req.file) {
             return res.status(400).json({ message: "Image is required" });
         }
-
         var racket = new racketModel({
-			model : req.body.name,
-			path : "/images/"+req.file.filename,
+            model : req.body.name,
+            path : "/images/"+req.file.filename,
             description: req.body.description,
             rated: 0,
             rented: false,
             package: req.body.packageId,
-            owner: 'klub'
+            owner: req.body.owner || 'rekreativec' 
         });
 
         Package.findOne({ _id: req.body.packageId, club: req.session.userId }).exec(function(err, package){
@@ -329,50 +323,62 @@ module.exports = {
         }
     },
 
-    rent: function (req,res){
-        User.findById(req.session.userId).exec(function(err, u){
-            if(err){
+    rent: function (req, res) {
+        const userId = req.session.userId;
+        const userType = req.session.userType;
+
+        const ActiveModel = (userType === 'club') ? Club : User;
+
+        ActiveModel.findById(userId).exec(function (err, borrower) {
+            if (err) {
                 return res.status(500).json(err);
             }
 
-            if(u.rented){
+            if (!borrower) {
+                return res.status(400).json({ message: "Uporabnik ali klub ni bil najden." });
+            }
+
+            if (borrower.rented) {
                 return res.status(400).json({ message: "Already rented" });
             }
 
-            else{
-                return racketModel.findById(req.body.racket).exec(function(err,r){
+            racketModel.findById(req.body.racket).exec(function (err, r) {
                 if (err) {
                     return res.status(500).json(err);
                 }
-                
-                if(!r.rented){
-                    r.rented = true;
-                    
-                    return r.save(function (err, updatedRacket) {
+
+                if (!r) {
+                    return res.status(404).json({ message: "Lopar ne obstaja." });
+                }
+
+                if (r.rented) {
+                    return res.status(400).json({ message: "Racket is rented by someone else" });
+                }
+
+                r.rented = true;
+
+                r.save(function (err, updatedRacket) {
+                    if (err) {
+                        return res.status(500).json(err);
+                    }
+
+                    ActiveModel.findByIdAndUpdate(
+                        userId,
+                        { rented: r._id },
+                        { new: true }
+                    ).exec(function (err, updatedBorrower) {
                         if (err) {
                             return res.status(500).json(err);
                         }
 
-                        User.findByIdAndUpdate(
-                            req.session.userId, 
-                            { rented: r._id }, 
-                            { new: true }
-                        ).exec(function (err, updatedUser) {
-                            if (err) {
-                                return res.status(500).json(err);
-                            }
-
-                            req.session.user = updatedUser;
-                            return res.status(200).json({
-                                racket: updatedRacket,
-                                user: updatedUser
-                            });
+                        req.session.user = updatedBorrower;
+                        return res.status(200).json({
+                            racket: updatedRacket,
+                            user: updatedBorrower
                         });
                     });
-                }
-                    return res.status(400).json({ message: "Racket is rented by someone else" });
-                })
-            }
-        })
+                });
+            });
+        });
     }
 };

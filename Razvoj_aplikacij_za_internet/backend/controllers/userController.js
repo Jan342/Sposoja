@@ -1,5 +1,8 @@
 var UserModel = require('../models/userModel.js');
 var ClubModel = require('../models/clubModel.js');
+var racketModel = require('../models/racketModel.js');
+const Club = require('../models/clubModel.js');
+const User = require('../models/userModel.js');
 
 /**
  * userController.js
@@ -103,6 +106,48 @@ module.exports = {
             details: err.message 
         });
     }
-}
+},
+
+    returnRacket: function (req, res) {
+        const userId = req.session.userId;
+        const userType = req.session.userType;
+
+        const ActiveModel = (userType === 'club') ? Club : User;
+
+        ActiveModel.findById(userId).exec(function (err, borrower) {
+            if (err) {
+                return res.status(500).json(err);
+            }
+
+            if (!borrower) {
+                return res.status(400).json({ message: "Uporabnik ali klub ni bil najden." });
+            }
+
+            if (!borrower.rented) {
+                return res.status(400).json({ message: "Nimate izposojenega nobenega loparja." });
+            }
+
+            const racketId = borrower.rented;
+
+            racketModel.findByIdAndUpdate(racketId, { rented: false }, { new: true }).exec(function (err, updatedRacket) {
+                if (err) {
+                    return res.status(500).json(err);
+                }
+
+                ActiveModel.findByIdAndUpdate(
+                    userId,
+                    { $unset: { rented: "" } },
+                    { new: true }
+                ).exec(function (err, updatedBorrower) {
+                    if (err) {
+                        return res.status(500).json(err);
+                    }
+
+                    req.session.user = updatedBorrower;
+                    return res.status(200).json(updatedBorrower);
+                });
+            });
+        });
+    }
 };
 
