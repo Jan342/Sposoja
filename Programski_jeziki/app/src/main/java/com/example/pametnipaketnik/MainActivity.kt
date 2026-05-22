@@ -9,6 +9,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,13 +27,16 @@ import java.io.IOException
 
 class MainActivity : ComponentActivity() {
 
+    private var scannedBoxId by mutableStateOf("")
+    private var showDialog by mutableStateOf(false)
+    private var showSuccess by mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             PametniPaketnikTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -49,6 +55,53 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Text("Skeniraj in Odpri")
                         }
+                        Spacer(modifier = Modifier.height(25.dp))
+
+                        if (showSuccess) {
+                            Card {
+                                Text(
+                                    text = "Paketnik ID $scannedBoxId se je uspešno odprl.",
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        }
+                    }
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                showDialog = false
+                            },
+
+                            title = {
+                                Text("Paketnik")
+                            },
+
+                            text = {
+                                Text("Ali se je paketnik uspešno odprl?")
+                            },
+                            confirmButton = {
+
+                                TextButton(
+                                    onClick = {
+                                        showDialog = false
+                                        showSuccess = true
+                                    }
+                                ) {
+                                    Text("DA")
+                                }
+                            },
+
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        showDialog = false
+                                    }
+                                ) {
+                                    Text("NE")
+                                }
+
+                            }
+                        )
                     }
                 }
             }
@@ -61,6 +114,7 @@ class MainActivity : ComponentActivity() {
 
         scanner.startScan()
             .addOnSuccessListener { barcode ->
+                showSuccess = false
                 val rawValue = barcode.rawValue ?: ""
                 Log.d("D4M", "Skeniranje uspelo! Tekst: $rawValue")
 
@@ -73,6 +127,7 @@ class MainActivity : ComponentActivity() {
                 val boxId = rawId.trimStart('0')
 
                 if (boxId.isNotEmpty()) {
+                    scannedBoxId = boxId
                     Log.d("D4M", "Box ID: $boxId")
                     playToken(context, boxId)
                 } else {
@@ -96,10 +151,11 @@ class MainActivity : ComponentActivity() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("D4M", "API napaka - preveri internet: ${e.message}")
+                Log.e("D4M", "API napaka: ${e.message}")
             }
 
             override fun onResponse(call: Call, response: Response) {
+                Log.d("D4M", "HTTP CODE: ${response.code}")
                 val responseBody = response.body?.string()
                 if (responseBody != null) {
                     try {
@@ -149,7 +205,12 @@ class MainActivity : ComponentActivity() {
                     prepare()
                     start()
                     Log.d("D4M", "Uspešno piska!")
-                    setOnCompletionListener { it.release() }
+                    setOnCompletionListener {
+                        it.release()
+                        runOnUiThread {
+                            showDialog = true
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {
