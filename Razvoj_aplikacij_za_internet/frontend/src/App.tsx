@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard'
 import RacketRent from './components/RacketRent'
 import Profile from './components/Profile'
 import type { AuthEntity } from './types/user'
+import ClubDetails from './components/ClubDetails'
 
 function App() {
   const [user, setUser] = useState<AuthEntity | null>(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -36,6 +37,7 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}></Route>
                 <Route path="/rent" element={<ProtectedRoute role="club"><RacketRent /></ProtectedRoute>}></Route>
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
+                <Route path="/clubs/:id" element={<ProtectedRoute><ClubDetails /></ProtectedRoute>}></Route>
               </Routes>
             </div>
           </UserContext.Provider>

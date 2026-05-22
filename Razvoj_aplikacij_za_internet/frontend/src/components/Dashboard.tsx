@@ -9,6 +9,7 @@ import Button from "react-bootstrap/Button";
 import ListGroup from "react-bootstrap/ListGroup";
 import { ServerRequest } from "../types/ServerRequest";
 import { UserContext } from "../contexts/userContext";
+import UserDashboard from "./UserDashboard";
 import { Link } from "react-router-dom";
 import Badge from "react-bootstrap/Badge";
 
@@ -111,12 +112,12 @@ function Dashboard(){
     if (isClub) {
         return(
             <Container className="py-4">
-                <h2 className="mb-4">Nadzorna plosca kluba</h2>
+                <h2 className="mb-4">Nadzorna plošča kluba</h2>
                 <Row className="g-4">
                     <Col lg={4}>
                         <h4>Paketniki</h4>
                         {packages.length === 0 ? (
-                            <Alert variant="info">Klub se nima dodanih paketnikov.</Alert>
+                            <Alert variant="info">Klub še nima dodanih paketnikov.</Alert>
                         ) : (
                             packages.map((packageItem) => (
                                 <Card
@@ -135,7 +136,7 @@ function Dashboard(){
                                             variant={selectedPackage?._id === packageItem._id ? "primary" : "outline-primary"}
                                             onClick={() => setSelectedPackage(packageItem)}
                                         >
-                                            Prikazi loparje
+                                            Prikaži loparje
                                         </Button>
                                     </Card.Body>
                                 </Card>
@@ -151,7 +152,7 @@ function Dashboard(){
                         {!selectedPackage ? (
                             <Alert variant="secondary">Izberi paketnik za prikaz loparjev.</Alert>
                         ) : packageRackets.length === 0 ? (
-                            <Alert variant="secondary">Ta paketnik se nima dodanih loparjev.</Alert>
+                            <Alert variant="secondary">Ta paketnik še nima dodanih loparjev.</Alert>
                         ) : (
                             <Row>
                                 {packageRackets.map((racket) => (
@@ -266,6 +267,10 @@ function Dashboard(){
                 </div>
             )}
         </Container>
+    );*/
+
+    return(
+       <UserDashboard/>
     );
 }
 export default Dashboard;

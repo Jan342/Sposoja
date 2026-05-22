@@ -61,7 +61,7 @@ function Racket(props: any) {
 
                 <div className="d-flex gap-2 mt-4 justify-content-start">
                     <Button variant="outline-light" size="sm" onClick={() => navigate(`/racket/${props.racket._id}`)}>
-                        Detajli
+                        Podrobnosti
                     </Button>
                     
                     {props.racket.owner === "klub" ? (

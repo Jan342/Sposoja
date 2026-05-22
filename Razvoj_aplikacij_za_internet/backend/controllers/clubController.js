@@ -1,6 +1,7 @@
 var ClubModel = require('../models/clubModel.js');
 var UserModel = require('../models/userModel.js');
 var Package = require('../models/packageModel.js');
+const racketModel = require('../models/racketModel.js');
 
 /**
  * clubController.js
@@ -8,6 +9,16 @@ var Package = require('../models/packageModel.js');
  * @description :: Server-side logic for managing clubs.
  */
 module.exports = {
+
+    list: function(req,res){ 
+        ClubModel.find().exec(function(err,c){
+            if(err){
+                return res.status(500).json({error: "Server Error"});
+            }
+
+            return res.status(200).json(c);
+        })
+    },
 
     create: async function (req, res) {
         var username = req.body.clubName;
@@ -128,5 +139,58 @@ module.exports = {
                 });
             });
         });
+    },
+
+    joinClub: function(req, res) {
+        UserModel.findById(req.session.userId).exec(function(err, user) {
+            if (err) {
+                return res.status(500).json({
+                    error: "Error fetching user"
+                });
+            }
+
+            if (!user) {
+                return res.status(404).json({
+                    error: "User not found"
+                });
+            }
+
+            if (user.role !== 'rekreativec') {
+                return res.status(403).json({
+                    error: "You are already in a club"
+                });
+            }
+
+            UserModel.findByIdAndUpdate(req.session.userId,{role: 'clan',joinedClub: req.body.club_id},{ new: true }).select('-password').exec(function(err, u) {
+                if (err) {
+                    return res.status(500).json({
+                        error: "Couldn't join to the club"
+                    });
+                }
+
+                return res.status(200).json(u);
+            });
+        });
+    },
+
+    getclubRackets: function(req,res){
+        Package.find({club: req.session.user.joinedClub}).exec(function(err,packages){
+            if(err) {
+                return res.status(500).json(err);
+            }
+
+            const packageIds = packages.map(p => p._id);
+
+            console.log(packageIds)
+
+            racketModel.find({package: { $in: packageIds}}).exec(function(err,rackets){
+                if(err) {
+                    return res.status(500).json(err);
+                }
+
+                console.log(rackets);
+                res.status(200).json(rackets);
+            })
+        })
     }
 };
