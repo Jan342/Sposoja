@@ -186,7 +186,8 @@ function Dashboard(){
         );
     }
     return (
-        <Container className="mt-5" style={{ maxWidth: "1000px" }}>
+        <UserDashboard/>
+        /*<Container className="mt-5" style={{ maxWidth: "1000px" }}>
             <div className="mb-4 text-start d-flex justify-content-between align-items-center">
                 <div>
                     <h1 className="fw-bold m-0">Loparji za isposojo</h1>
@@ -266,11 +267,7 @@ function Dashboard(){
                     </Row>
                 </div>
             )}
-        </Container>
-    );*/
-
-    return(
-       <UserDashboard/>
+        </Container>*/
     );
 }
 export default Dashboard;
