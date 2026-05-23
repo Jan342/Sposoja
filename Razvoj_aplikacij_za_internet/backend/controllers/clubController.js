@@ -181,8 +181,6 @@ module.exports = {
 
             const packageIds = packages.map(p => p._id);
 
-            console.log(packageIds)
-
             racketModel.find({package: { $in: packageIds}}).exec(function(err,rackets){
                 if(err) {
                     return res.status(500).json(err);
