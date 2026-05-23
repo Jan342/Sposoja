@@ -174,21 +174,35 @@ module.exports = {
     },
 
     getclubRackets: function(req,res){
-        Package.find({club: req.session.user.joinedClub}).exec(function(err,packages){
-            if(err) {
+
+        UserModel.findById(req.session.userId).exec(function(err, user) {
+
+            if (err) {
                 return res.status(500).json(err);
             }
 
-            const packageIds = packages.map(p => p._id);
+            if (!user) {
+                return res.status(404).json({
+                    message: 'User not found'
+                });
+            }
 
-            racketModel.find({package: { $in: packageIds}}).exec(function(err,rackets){
-                if(err) {
+            Package.find({ club: user.joinedClub }).exec(function(err, packages) {
+
+                if (err) {
                     return res.status(500).json(err);
                 }
 
-                console.log(rackets);
-                res.status(200).json(rackets);
-            })
-        })
+                const packageIds = packages.map(p => p._id);
+
+                racketModel.find({package: { $in: packageIds }}).exec(function(err, rackets) {
+                    if (err) {
+                        return res.status(500).json(err);
+                    }
+
+                    return res.status(200).json(rackets);
+                });
+            });
+        });
     }
 };

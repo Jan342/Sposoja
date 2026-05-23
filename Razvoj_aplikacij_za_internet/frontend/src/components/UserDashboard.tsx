@@ -58,19 +58,26 @@ function UserDashboard(){
             const loadRackets = async function(){
                 const res = new ServerRequest(`clubs/clubRackets`);
                 const data = await (await res.get()).json();
+                console.log(data);
                 setRackets(data || []);
+
+                console.log(rackets);
             };
             loadRackets();
         }
-    }, []);
+    }, [userContext.user.role]);
 
     async function joinClub(club: ClubData){
         setSelectedClub(null)
         const res = new ServerRequest('clubs/joinClub');
         const data = await (await res.post({club_id: club._id})).json();
-        if(data && userContext.user?.accountType === "user"){
-            userContext.user.joinedClub = club._id;
-            userContext.user.role = "clan";
+        console.log(userContext);
+        if(data && userContext.user?.accountType === "person"){
+            userContext.setUserContext({
+                ...userContext.user,
+                joinedClub: club._id,
+                role: "clan"
+            });
         }
     }
 
@@ -179,7 +186,7 @@ function UserDashboard(){
                     <div className="bg-dark p-4 rounded mb-4 border border-secondary border-opacity-25 shadow-sm">
                         <h3 className="fw-bold mb-2 text-white">Trenutno nimaš izposojenega nobenega loparja 🎒</h3>
                     </div>
-                    <h4 className="fw-bold mb-3 text-white">Razpoložljivi loparji:</h4>
+                    <h4 className="fw-bold mb-3 text-black">Razpoložljivi loparji:</h4>
                     <Row>
                         {rackets.map((racket: any) => (
                             <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
