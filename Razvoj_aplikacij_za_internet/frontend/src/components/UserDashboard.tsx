@@ -58,10 +58,7 @@ function UserDashboard(){
             const loadRackets = async function(){
                 const res = new ServerRequest(`clubs/clubRackets`);
                 const data = await (await res.get()).json();
-                console.log(data);
                 setRackets(data || []);
-
-                console.log(rackets);
             };
             loadRackets();
         }
@@ -71,7 +68,6 @@ function UserDashboard(){
         setSelectedClub(null)
         const res = new ServerRequest('clubs/joinClub');
         const data = await (await res.post({club_id: club._id})).json();
-        console.log(userContext);
         if(data && userContext.user?.accountType === "person"){
             userContext.setUserContext({
                 ...userContext.user,
