@@ -46,7 +46,7 @@ function UserDashboard(){
     const nav = useNavigate();
 
     useEffect(function(){
-        if(userContext.user.role == 'rekreativec'){
+        if(userContext.user?.role == 'rekreativec'){
             const loadClubs = async function(){
                 const res = new ServerRequest(`clubs`);
                 const data = await (await res.get()).json();
@@ -62,7 +62,7 @@ function UserDashboard(){
             };
             loadRackets();
         }
-    }, [userContext.user.role]);
+    }, [userContext.user?.role]);
 
     async function joinClub(club: ClubData){
         setSelectedClub(null)
@@ -82,6 +82,9 @@ function UserDashboard(){
     };
 
     const user = userContext.user as any;
+    useEffect(() => {
+    console.log("Uporabnik v kontekstu se je spremenil:", user);
+}, [userContext.user]);
     async function handleReturnRacket() {
         if (!window.confirm("Ali res želiš vrniti ta lopar nazaj v omarico?")) return;
 
@@ -109,6 +112,9 @@ function UserDashboard(){
             setError("Napaka pri povezavi s strežnikom.");
         }
     }
+    const activeRacket = user?.rented 
+    ? rackets.find(r => r._id === (typeof user.rented === 'object' ? user.rented._id : user.rented))
+    : null;
 
     if(userContext?.user?.role == 'clan'){
         return (
@@ -138,8 +144,8 @@ function UserDashboard(){
                                                 Tvoja aktivna izposoja
                                             </Card.Subtitle>
                                             <Card.Title as="h3" className="fw-bold m-0 text-white">
-                                                {typeof user.rented === "object" ? user.rented.name : "Izposojeni lopar"}
-                                            </Card.Title>
+                                            {activeRacket ? activeRacket.model : "Izposojeni lopar"}
+                                        </Card.Title>
                                         </div>
                                     </div>
                                     <hr className="border-secondary my-3" />
@@ -147,11 +153,11 @@ function UserDashboard(){
                                         <p className="mb-2"><strong>Tip opreme:</strong> Teniški lopar</p>
                                         <p className="mb-2"><strong>Čas izposoje:</strong> Danes (Aktivno)</p>
                                         <p className="mb-0 text-white-50">
-                                            <small>ID: </small>
-                                            <code className="text-warning bg-dark px-2 py-1 rounded">
-                                                {typeof user.rented === "object" ? user.rented._id : user.rented}
-                                            </code>
-                                        </p>
+                                        <small>Lopar: </small>
+                                        <code className="text-warning bg-dark px-2 py-1 rounded">
+                                            {activeRacket ? activeRacket.model : "Ni podatka o modelu"}
+                                        </code>
+                                    </p>
                                     </div>
                                 </div>
                                 <Button variant="danger" size="lg" className="w-100 fw-bold shadow mt-auto" onClick={handleReturnRacket}>
@@ -185,10 +191,14 @@ function UserDashboard(){
                     <h4 className="fw-bold mb-3 text-black">Razpoložljivi loparji:</h4>
                     <Row>
                         {rackets.map((racket: any) => (
-                            <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
-                                <Racket racket={racket} onRentSuccess={() => window.location.reload()} />
-                            </Col>
-                        ))}
+                        <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
+                            <Racket 
+                                racket={racket} 
+                                isOccupied={!!racket.rented}
+                                onRentSuccess={() => window.location.reload()} 
+                            />
+                        </Col>
+                    ))}
                     </Row>
                 </div>
             )}
@@ -223,7 +233,7 @@ function UserDashboard(){
             show={selectedClub !== null}
             text="Ali se želite včlaniti?"
             onClose={() => setShowPopup(false)}
-            onConfirm={() => joinClub(selectedClub)}
+            onConfirm={() => selectedClub && joinClub(selectedClub)}
         />
     </>
     );

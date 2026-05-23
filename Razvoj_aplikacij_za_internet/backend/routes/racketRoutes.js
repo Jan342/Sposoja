@@ -14,7 +14,15 @@ function requiresLogin(req, res, next){
     }
 }
 
-
+function isClubOwner(req, res, next) {
+    if (req.session && req.session.user && req.session.user.role === 'klub') {
+        return next();
+    } else {
+        var err = new Error("Samo lastniki klubov lahko izvajajo to operacijo.");
+        err.status = 403;
+        return next(err);
+    }
+}
 
 router.get('/',racketController.list);
 router.get('/packages', requiresLogin, racketController.listPackages);
@@ -23,6 +31,7 @@ router.post('/packages', requiresLogin, racketController.createPackage);
 router.put('/packages/:id/limit', requiresLogin, racketController.updatePackageLimit);
 router.post('/addRacket', requiresLogin, upload.single('image'), racketController.create);
 router.delete('/:id', requiresLogin, racketController.remove);
+
 router.post('/rentRacket', requiresLogin, racketController.rent);
 
 

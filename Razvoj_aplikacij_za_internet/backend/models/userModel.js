@@ -11,7 +11,7 @@ var userSchema = new Schema({
 	'profileImage': String,
 	'role' : {
 		type: String,
-	enum: ['clan', 'rekreativec'],
+	enum: ['klub', 'clan', 'rekreativec'],
 	default: 'rekreativec' 
 	},
 	'rented' : {
