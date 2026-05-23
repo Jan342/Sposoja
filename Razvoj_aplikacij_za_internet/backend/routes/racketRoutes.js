@@ -30,7 +30,7 @@ router.get('/packages/:id/rackets', requiresLogin, racketController.listPackageR
 router.post('/packages', requiresLogin, racketController.createPackage);
 router.put('/packages/:id/limit', requiresLogin, racketController.updatePackageLimit);
 router.post('/addRacket', requiresLogin, upload.single('image'), racketController.create);
-router.delete('/:id', requiresLogin, racketController.remove);
+router.delete('/:id', requiresLogin, isClubOwner, racketController.remove);
 
 router.post('/rentRacket', requiresLogin, racketController.rent);
 

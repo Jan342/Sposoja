@@ -302,26 +302,35 @@ list: async function (req, res) {
     },
 
     remove: async function (req, res) {
-        var id = req.params.id;
+    var id = req.params.id;
 
-        try{
-            var racket = await racketModel.findByIdAndDelete(id);
-            if (!racket) {
-                return res.status(404).json({
-                    message: 'No such racket found in database.',
-                });
-            }
-                return res.status(200).json({
-                    message: 'Successfully deleted racket.',
-                });
-        }
-        catch(err){
-            return res.status(500).json({
-                message: 'Error when deleting racket.',
-                error: err.message
+    try {
+        var racket = await racketModel.findById(id);
+        
+        if (!racket) {
+            return res.status(404).json({
+                message: 'Lopar ni bil najden.',
             });
         }
-    },
+
+        if (racket.owner.toString() !== req.session.userId) {
+            return res.status(403).json({
+                message: 'Nimate dovoljenja za brisanje tega loparja.',
+            });
+        }
+        await racketModel.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            message: 'Lopar je bil uspešno izbrisan.',
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            message: 'Napaka pri brisanju loparja.',
+            error: err.message
+        });
+    }
+},
 
     rent: function (req, res) {
         const userId = req.session.userId;
