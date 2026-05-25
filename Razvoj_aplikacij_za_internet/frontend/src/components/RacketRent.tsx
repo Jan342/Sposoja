@@ -97,48 +97,42 @@ function RacketRent(){
     }
 
     async function addRacket(e: FormEvent<HTMLFormElement>){
-        e.preventDefault();
-        setMessage('');
-        setError('');
+    e.preventDefault();
+    setMessage('');
+    setError('');
 
-        if (!file) {
-            setError('Izberi sliko loparja.');
-            return;
-        }
+    if (!file) { setError('Izberi sliko loparja.'); return; }
 
-        if (!selectedPackage) {
-            setError('Najprej izberi paketnik.');
-            return;
-        }
+    const formData = new FormData();
+    formData.append('packageId', selectedPackage);
+    formData.append('name', model);
+    formData.append('description', description);
+    formData.append('image', file);
+    formData.append('audienceType', targetAudience); // "rekreativec" ali "klub"
 
-        const formData = new FormData();
+    // Paketnik pošljemo le, če je tip 'klub'
+    if (targetAudience === 'klub') {
+        if (!selectedPackage) { setError('Najprej izberi paketnik.'); return; }
         formData.append('packageId', selectedPackage);
-        formData.append('name', model);
-        formData.append('image', file);
-        formData.append('description', description);
-        formData.append('owner', targetAudience); 
-
-        const res = await fetch('http://localhost:3001/rackets/addRacket', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-        });
-        const data = await res.json();
-
-        if(data._id){
-            setModel('');
-            setDescription('');
-            setFile(null);
-            setTargetAudience('rekreativec');
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-            setMessage('Lopar je bil uspešno dodan v paketnik.');
-            await loadPackages();
-        } else {
-            setError(data.message || 'Loparja ni bilo mogoce dodati.');
-        }
     }
+
+    const res = await fetch('http://localhost:3001/rackets/addRacket', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+    
+    const data = await res.json();
+    if(data._id){
+        // Ponastavitev form-a
+        setModel(''); setDescription(''); setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        setMessage('Lopar je bil uspešno dodan.');
+        await loadPackages();
+    } else {
+        setError(data.message || 'Napaka pri dodajanju.');
+    }
+}
 
     const selectedPackageData = packages.find((packageItem) => packageItem._id === selectedPackage);
     const selectedPackageFull = selectedPackageData

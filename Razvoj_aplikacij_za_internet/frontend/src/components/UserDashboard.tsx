@@ -53,6 +53,25 @@ function UserDashboard(){
                 setClubs(data || []);
             };
             loadClubs();
+
+            const loadRackets = async function(){
+        try {
+            const res = new ServerRequest(`rackets`);
+            const response = await res.get();
+            
+            if (response.ok) {
+                const data = await response.json();
+                setRackets(Array.isArray(data) ? data : []);
+            } else {
+                console.error("Strežnik vrnil napako:", response.status);
+                setRackets([]);
+            }
+        } catch (err) {
+            console.error("Napaka pri klicu:", err);
+            setRackets([]);
+        }
+    };
+        loadRackets();
         }
         else{
             const loadRackets = async function(){
@@ -112,11 +131,11 @@ function UserDashboard(){
             setError("Napaka pri povezavi s strežnikom.");
         }
     }
-    const activeRacket = user?.rented 
-    ? rackets.find(r => r._id === (typeof user.rented === 'object' ? user.rented._id : user.rented))
-    : null;
+    const activeRacket = (Array.isArray(rackets) && user?.rented) 
+        ? rackets.find(r => r._id === (typeof user.rented === 'object' ? user.rented._id : user.rented))
+        : null;
 
-    if(userContext?.user?.role == 'clan'){
+    if(userContext?.user?.role == 'clan' || userContext?.user?.role === 'rekreativec'){
         return (
             <Container className="mt-5" style={{ maxWidth: "1000px" }}>
             <div className="mb-4 text-start d-flex justify-content-between align-items-center">

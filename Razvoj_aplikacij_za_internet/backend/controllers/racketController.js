@@ -9,29 +9,33 @@ const Package = require('../models/packageModel.js');
  * @description :: Server-side logic for managing rackets.
  */
 module.exports = {
-
 list: async function (req, res) {
     try {
-        let query = { owner: "rekreativec", rented: false };
+        let query;
 
         if (req.session && req.session.userId && req.session.userType === 'club') {
             const clubPackages = await Package.find({ club: req.session.userId });
             const packageIds = clubPackages.map(p => p._id);
-
             query = { package: { $in: packageIds } }; 
+        } 
+        else {
+            query = { 
+                rented: false, 
+                audienceType: 'rekreativec' 
+            };
         }
 
         var rackets = await racketModel.find(query);
         return res.json(rackets);
 
     } catch (err) {
+        console.error("NAPAKA:", err);
         return res.status(500).json({
             message: 'Error when getting rackets.',
             error: err.message
         });
     }
 },
-
     listPackages: function(req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can view packages" });
@@ -241,6 +245,18 @@ list: async function (req, res) {
         });
     },
 
+    update: async function (req, res) {
+        var id = req.params.id;
+        try {
+            var racket = await racketModel.findByIdAndUpdate(id, req.body, { new: true });
+            if (!racket) {
+                return res.status(404).json({ message: 'Lopar ni bil najden.' });
+            }
+            return res.json(racket);
+        } catch (err) {
+            return res.status(500).json({ message: 'Napaka pri posodabljanju.', error: err.message });
+        }
+    },
     create: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can add rackets" });
@@ -301,6 +317,19 @@ list: async function (req, res) {
         })
     },
 
+    show: async function (req, res) {
+        var id = req.params.id;
+        try {
+            var racket = await racketModel.findById(id);
+            if (!racket) {
+                return res.status(404).json({ message: 'Lopar ni bil najden.' });
+            }
+            return res.json(racket);
+        } catch (err) {
+            return res.status(500).json({ message: 'Napaka pri pridobivanju.', error: err.message });
+        }
+    },
+
     remove: async function (req, res) {
     var id = req.params.id;
 
@@ -313,6 +342,11 @@ list: async function (req, res) {
             });
         }
 
+        if (racket.owner.toString() !== req.session.userId) {
+            return res.status(403).json({
+                message: 'Nimate dovoljenja za brisanje tega loparja.',
+            });
+        }
         await racketModel.findByIdAndDelete(id);
 
         return res.status(200).json({
@@ -324,6 +358,30 @@ list: async function (req, res) {
             message: 'Napaka pri brisanju loparja.',
             error: err.message
         });
+    }
+},
+addRacket: async function (req, res) {
+    try {
+        const isRecreational = req.body.audienceType === 'rekreativec';
+
+        var newRacket = new racketModel({
+            model: req.body.name,
+            description: req.body.description,
+            // Če je rekreativec, owner ostane null ali pa ga ne nastaviš
+            // S tem se izogneš CastError, ker ne vsiljuješ stringa v ObjectId polje
+            owner: isRecreational ? null : req.session.userId, 
+            
+            // Shranimo tip, da vemo za koga je lopar
+            audienceType: req.body.audienceType,
+            
+            // Če je rekreativec, 'package' polje ostane null
+            package: isRecreational ? null : req.body.packageId 
+        });
+
+        await newRacket.save();
+        return res.json(newRacket);
+    } catch (err) {
+        // ... obdelava napak
     }
 },
 

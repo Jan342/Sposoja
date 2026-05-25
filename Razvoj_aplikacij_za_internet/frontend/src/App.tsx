@@ -13,6 +13,7 @@ import RacketRent from './components/RacketRent'
 import Profile from './components/Profile'
 import type { AuthEntity } from './types/user'
 import ClubDetails from './components/ClubDetails'
+import EditRacket from "./components/EditRacket";
 
 function App() {
   const [user, setUser] = useState<AuthEntity | null>(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/rent" element={<ProtectedRoute role="club"><RacketRent /></ProtectedRoute>}></Route>
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
                 <Route path="/clubs/:id" element={<ProtectedRoute><ClubDetails /></ProtectedRoute>}></Route>
+                <Route path="/racket/edit/:id" element={<EditRacket />} />
               </Routes>
             </div>
           </UserContext.Provider>

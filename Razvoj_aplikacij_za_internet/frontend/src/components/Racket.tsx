@@ -64,9 +64,15 @@ function Racket(props: any) {
                 </div>
 
                 <div className="d-flex gap-2 mt-4 justify-content-start">
-                    <Button variant="outline-light" size="sm" onClick={() => navigate(`/racket/${props.racket._id}`)}>
-                        Podrobnosti
-                    </Button>
+                    {user?.accountType === "club" && props.racket.owner === user._id && (
+                        <Button 
+                            variant="outline-light" 
+                            size="sm" 
+                            onClick={() => navigate(`/racket/edit/${props.racket._id}`)}
+                        >
+                            Uredi podatke
+                        </Button>
+                    )}
                     
                     {user?.accountType === "club" && props.racket.owner === user._id ? (
                     <Button variant="danger" size="sm" onClick={handleDelete}>

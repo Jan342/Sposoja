@@ -57,21 +57,26 @@ function Dashboard(){
         loadDashboard();
     }, [reload, isClub]);
 
-    useEffect(function(){
-        if (!selectedPackage) {
-            setPackageRackets([]);
-            return;
-        }
+        useEffect(function(){
+                if (!selectedPackage) {
+                    setPackageRackets([]);
+                    return;
+                }
 
-        const loadPackageRackets = async function(){
-            const res = new ServerRequest(`rackets/packages/${selectedPackage._id}/rackets`);
-            const data = await (await res.get()).json();
-            setPackageRackets(data.rackets || []);
-        };
+                const loadPackageRackets = async function(){
+                    try {
+                        const res = new ServerRequest(`rackets/packages/${selectedPackage._id}/rackets`);
+                        const response = await res.get();
+                        const data = await response.json();
+                        setPackageRackets(data.rackets || []);
+                    } catch (err) {
+                        console.error("Napaka pri nalaganju loparjev v paketniku:", err);
+                        setPackageRackets([]);
+                    }
+                };
 
-        loadPackageRackets();
-    }, [selectedPackage]);
-
+                loadPackageRackets();
+            }, [selectedPackage, reload]);
     const refreshRackets = () => {
         setReload(prev => !prev);
     };
@@ -139,7 +144,34 @@ function Dashboard(){
         );
     }
     return (
-        <UserDashboard/>
+        <Container className="py-4">
+            <UserDashboard />
+
+            <hr className="my-5" />
+
+            <h3>Loparji za rekreativnost</h3>
+            <Row>
+    {Array.isArray(rackets) && rackets.length > 0 ? (
+        rackets.map((racket) => (
+            <Col key={racket._id} xs={12} md={4} lg={3} className="mb-4">
+                <Racket 
+                    key={`${racket._id}-${reload}`} 
+                    racket={racket} 
+                    onRentSuccess={() => setReload(prev => !prev)} 
+                />
+            </Col>
+        ))
+    ) : (
+        <Col xs={12}>
+            <Alert variant="info">
+                {Array.isArray(rackets) 
+                    ? "Trenutno ni na voljo loparjev za izposojo." 
+                    : "Prišlo je do napake pri nalaganju loparjev."}
+            </Alert>
+        </Col>
+    )}
+</Row>
+        </Container>
     );
 }
 export default Dashboard;
