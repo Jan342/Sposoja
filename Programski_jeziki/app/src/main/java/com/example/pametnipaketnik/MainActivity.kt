@@ -200,6 +200,13 @@ class MainActivity : ComponentActivity() {
             }
 
             if (tempFile.exists() && tempFile.length() > 0) {
+                runOnUiThread {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Predvajam token za paketnik ID $scannedBoxId",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
                 MediaPlayer().apply {
                     setDataSource(tempFile.absolutePath)
                     prepare()
