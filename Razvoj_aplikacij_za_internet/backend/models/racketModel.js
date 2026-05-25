@@ -17,9 +17,11 @@ var racketSchema = new Schema({
         ref: 'package'
     },
     'rented': Boolean,
-    'owner': { type: String,
-        enum: ['klub', 'rekreativec'],
-        default: 'klub' }
+    'owner': { 
+        type: Schema.Types.ObjectId, 
+        ref: 'user',
+        required: true 
+    }
 });
 
 module.exports = mongoose.model('racket', racketSchema);

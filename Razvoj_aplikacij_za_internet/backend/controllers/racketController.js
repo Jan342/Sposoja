@@ -260,7 +260,7 @@ list: async function (req, res) {
             rated: 0,
             rented: false,
             package: req.body.packageId,
-            owner: req.body.owner || 'rekreativec' 
+            owner: req.session.userId
         });
 
         Package.findOne({ _id: req.body.packageId, club: req.session.userId }).exec(function(err, package){
@@ -313,11 +313,6 @@ list: async function (req, res) {
             });
         }
 
-        if (racket.owner.toString() !== req.session.userId) {
-            return res.status(403).json({
-                message: 'Nimate dovoljenja za brisanje tega loparja.',
-            });
-        }
         await racketModel.findByIdAndDelete(id);
 
         return res.status(200).json({

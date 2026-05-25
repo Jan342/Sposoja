@@ -8,6 +8,7 @@ import Button from "react-bootstrap/Button";
 import { ServerRequest } from "../types/ServerRequest";
 import { UserContext } from "../contexts/userContext";
 import UserDashboard from "./UserDashboard";
+import Racket from "./Racket";
 
 type Package = {
     _id: string;
@@ -123,24 +124,10 @@ function Dashboard(){
                             <Row>
                                 {packageRackets.map((racket) => (
                                     <Col key={racket._id} xs={12} md={6} className="mb-4">
-                                        <Card bg="dark" text="white" className="shadow-sm h-100">
-                                            {racket.path && (
-                                                <Card.Img
-                                                    variant="top"
-                                                    src={"http://localhost:3001/" + racket.path}
-                                                    style={{height: "220px", objectFit: "cover"}}
-                                                />
-                                            )}
-                                            <Card.Body>
-                                                <Card.Title>{racket.model}</Card.Title>
-                                                <Card.Text>
-                                                    <strong>Opis:</strong> {racket.description || "Ni opisa"}<br />
-                                                    <strong>Ocena:</strong> {racket.rated ?? 0}<br />
-                                                    <strong>Status:</strong> {racket.rented ? "Izposojen" : "Na voljo"}<br />
-                                                    <strong>Lastnik:</strong> {racket.owner || "klub"}
-                                                </Card.Text>
-                                            </Card.Body>
-                                        </Card>
+                                        <Racket 
+                                        racket={racket} 
+                                        onRentSuccess={() => setReload(prev => !prev)} 
+                                    />
                                     </Col>
                                 ))}
                             </Row>

@@ -68,7 +68,7 @@ function Racket(props: any) {
                         Podrobnosti
                     </Button>
                     
-                    {user?.role === "klub" && props.racket.owner === user._id ? (
+                    {user?.accountType === "club" && props.racket.owner === user._id ? (
                     <Button variant="danger" size="sm" onClick={handleDelete}>
                         Izbriši
                     </Button>
