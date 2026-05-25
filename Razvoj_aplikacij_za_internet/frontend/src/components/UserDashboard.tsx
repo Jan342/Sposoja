@@ -120,6 +120,7 @@ function UserDashboard(){
             const contextAsAny = userContext as any;
             if (res.ok) {
                 setMessage("Lopar je bil uspešno vrnjen!");
+                refreshRackets();
             if (contextAsAny?.setUserContext) contextAsAny.setUserContext(data);
             else if (contextAsAny?.setUser) contextAsAny.setUser(data);
              refreshRackets();

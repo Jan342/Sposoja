@@ -367,21 +367,16 @@ addRacket: async function (req, res) {
         var newRacket = new racketModel({
             model: req.body.name,
             description: req.body.description,
-            // Če je rekreativec, owner ostane null ali pa ga ne nastaviš
-            // S tem se izogneš CastError, ker ne vsiljuješ stringa v ObjectId polje
             owner: isRecreational ? null : req.session.userId, 
             
-            // Shranimo tip, da vemo za koga je lopar
             audienceType: req.body.audienceType,
             
-            // Če je rekreativec, 'package' polje ostane null
             package: isRecreational ? null : req.body.packageId 
         });
 
         await newRacket.save();
         return res.json(newRacket);
     } catch (err) {
-        // ... obdelava napak
     }
 },
 

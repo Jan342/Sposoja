@@ -131,7 +131,7 @@ function Dashboard(){
                                     <Col key={racket._id} xs={12} md={6} className="mb-4">
                                         <Racket 
                                         racket={racket} 
-                                        onRentSuccess={() => setReload(prev => !prev)} 
+                                        onRentSuccess={refreshRackets} 
                                     />
                                     </Col>
                                 ))}
@@ -151,26 +151,16 @@ function Dashboard(){
 
             <h3>Loparji za rekreativnost</h3>
             <Row>
-    {Array.isArray(rackets) && rackets.length > 0 ? (
-        rackets.map((racket) => (
-            <Col key={racket._id} xs={12} md={4} lg={3} className="mb-4">
-                <Racket 
-                    key={`${racket._id}-${reload}`} 
-                    racket={racket} 
-                    onRentSuccess={() => setReload(prev => !prev)} 
-                />
-            </Col>
-        ))
-    ) : (
-        <Col xs={12}>
-            <Alert variant="info">
-                {Array.isArray(rackets) 
-                    ? "Trenutno ni na voljo loparjev za izposojo." 
-                    : "Prišlo je do napake pri nalaganju loparjev."}
-            </Alert>
-        </Col>
-    )}
-</Row>
+                        {rackets.map((racket: any) => (
+                        <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
+                            <Racket 
+                                racket={racket} 
+                                isOccupied={!!racket.rented}
+                                onRentSuccess={() => window.location.reload()} 
+                            />
+                        </Col>
+                    ))}
+                    </Row>
         </Container>
     );
 }

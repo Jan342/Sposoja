@@ -108,9 +108,8 @@ function RacketRent(){
     formData.append('name', model);
     formData.append('description', description);
     formData.append('image', file);
-    formData.append('audienceType', targetAudience); // "rekreativec" ali "klub"
+    formData.append('audienceType', targetAudience);
 
-    // Paketnik pošljemo le, če je tip 'klub'
     if (targetAudience === 'klub') {
         if (!selectedPackage) { setError('Najprej izberi paketnik.'); return; }
         formData.append('packageId', selectedPackage);
