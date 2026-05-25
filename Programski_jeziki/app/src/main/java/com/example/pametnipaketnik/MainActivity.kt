@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -55,17 +56,9 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Text("Skeniraj in Odpri")
                         }
+                    }
                         Spacer(modifier = Modifier.height(25.dp))
 
-                        if (showSuccess) {
-                            Card {
-                                Text(
-                                    text = "Paketnik ID $scannedBoxId se je uspešno odprl.",
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-                        }
-                    }
                     if (showDialog) {
                         AlertDialog(
                             onDismissRequest = {
@@ -85,6 +78,11 @@ class MainActivity : ComponentActivity() {
                                     onClick = {
                                         showDialog = false
                                         showSuccess = true
+                                                Toast.makeText(
+                                                    this@MainActivity,
+                                                    "Paketnik ID $scannedBoxId se je uspešno odprl.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                     }
                                 ) {
                                     Text("DA")
@@ -161,9 +159,7 @@ class MainActivity : ComponentActivity() {
                     try {
                         val data = JSONObject(responseBody).optString("data")
                         if (data.isNotEmpty()) {
-                            runOnUiThread {
-                                processAndPlay(context, data)
-                            }
+                            processAndPlay(context, data)
                         }
                     } catch (e: Exception) {
                         Log.e("D4M", "Napaka pri branju JSON: ${e.message}")
@@ -198,30 +194,43 @@ class MainActivity : ComponentActivity() {
                 }
                 Log.d("D4M", "Zapisano kot WAV.")
             }
-
             if (tempFile.exists() && tempFile.length() > 0) {
                 runOnUiThread {
-                    android.widget.Toast.makeText(
+                    Toast.makeText(
                         context,
                         "Predvajam token za paketnik ID $scannedBoxId",
-                        android.widget.Toast.LENGTH_SHORT
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
-                MediaPlayer().apply {
-                    setDataSource(tempFile.absolutePath)
-                    prepare()
-                    start()
-                    Log.d("D4M", "Uspešno piska!")
-                    setOnCompletionListener {
-                        it.release()
-                        runOnUiThread {
-                            showDialog = true
+                val mp = MediaPlayer()
+                try {
+                        mp.setDataSource(tempFile.absolutePath)
+                        mp.prepare()
+                        mp.start()
+                        Log.d("D4M", "Uspešno piska!")
+                        mp.setOnCompletionListener {
+                            it.release()
+                            runOnUiThread {
+                                showDialog = true
+                            }
                         }
+                } catch (e: Exception) {
+                    Log.e("D4M", "Končna napaka: ${e.message}")
+                    mp.release()
+                    runOnUiThread {
+                        Toast.makeText(context, "Napaka pri predvajanju zvoka", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
+            } else {
+                runOnUiThread {
+                    Toast.makeText(context, "Napaka: Zvočna datoteka je prazna", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
-        } catch (e: Exception) {
-            Log.e("D4M", "Končna napaka: ${e.message}")
+        }
+        catch (e: Exception) {
+            Log.e("D4M", "Splošna napaka v processAndPlay: ${e.message}")
             e.printStackTrace()
         }
     }
