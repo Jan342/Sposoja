@@ -29,7 +29,7 @@ router.get('/packages', requiresLogin, racketController.listPackages);
 router.get('/packages/:id/rackets', requiresLogin, racketController.listPackageRackets);
 router.post('/packages', requiresLogin, racketController.createPackage);
 router.put('/packages/:id/limit', requiresLogin, racketController.updatePackageLimit);
-router.post('/addRacket', requiresLogin, upload.single('image'), racketController.create);
+router.post('/addRacket', requiresLogin, upload.single('image'), racketController.addRacket);
 router.delete('/:id', requiresLogin, racketController.remove);
 router.get('/:id', requiresLogin, racketController.show);
 router.put('/:id', requiresLogin, racketController.update);

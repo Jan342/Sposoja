@@ -52,7 +52,8 @@ function Dashboard(){
 
             const res = new ServerRequest('rackets')
             const data = await (await res.get()).json();
-            setRackets(data);
+            const recreationalRackets = data.filter((r: any) => r.audienceType === 'rekreativec');
+            setRackets(recreationalRackets);
         }
         loadDashboard();
     }, [reload, isClub]);
@@ -156,7 +157,7 @@ function Dashboard(){
                             <Racket 
                                 racket={racket} 
                                 isOccupied={!!racket.rented}
-                                onRentSuccess={() => window.location.reload()} 
+                                onRentSuccess={refreshRackets} 
                             />
                         </Col>
                     ))}

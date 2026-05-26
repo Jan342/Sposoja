@@ -95,8 +95,7 @@ function RacketRent(){
             setError(data.message || 'Stevila loparjev ni bilo mogoce spremeniti.');
         }
     }
-
-    async function addRacket(e: FormEvent<HTMLFormElement>){
+async function addRacket(e: FormEvent<HTMLFormElement>){
     e.preventDefault();
     setMessage('');
     setError('');
@@ -104,26 +103,21 @@ function RacketRent(){
     if (!file) { setError('Izberi sliko loparja.'); return; }
 
     const formData = new FormData();
+
     formData.append('packageId', selectedPackage);
     formData.append('name', model);
     formData.append('description', description);
     formData.append('image', file);
     formData.append('audienceType', targetAudience);
 
-    if (targetAudience === 'klub') {
-        if (!selectedPackage) { setError('Najprej izberi paketnik.'); return; }
-        formData.append('packageId', selectedPackage);
-    }
-
     const res = await fetch('http://localhost:3001/rackets/addRacket', {
         method: 'POST',
         credentials: 'include',
-        body: formData
+        body: formData 
     });
     
     const data = await res.json();
     if(data._id){
-        // Ponastavitev form-a
         setModel(''); setDescription(''); setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
         setMessage('Lopar je bil uspešno dodan.');

@@ -20,9 +20,11 @@ var racketSchema = new Schema({
     'owner': { 
         type: Schema.Types.ObjectId, 
         ref: 'user',
-        required: true 
+        required: function() {
+        return this.audienceType === 'klub';
+    }
     },
-    audienceType: { type: String, enum: ['rekreativec', 'klub'], default: 'rekreativec' }
+    audienceType: { type: String, enum: ['rekreativec', 'klub'], default: 'klub' }
 });
 
 module.exports = mongoose.model('racket', racketSchema);

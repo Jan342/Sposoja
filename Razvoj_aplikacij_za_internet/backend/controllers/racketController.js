@@ -110,7 +110,7 @@ list: async function (req, res) {
                 return res.status(404).json({ message: "Package not found" });
             }
 
-            racketModel.find({ package: packageItem._id })
+            racketModel.find({ package: String(packageItem._id) })
             .exec(function(err, rackets) {
                 if (err) {
                     return res.status(500).json({
@@ -360,23 +360,29 @@ list: async function (req, res) {
         });
     }
 },
-addRacket: async function (req, res) {
+    addRacket: async function (req, res) {
     try {
+        console.log("Prejeti body:", req.body);
+        const audience = req.body.audienceType;
         const isRecreational = req.body.audienceType === 'rekreativec';
 
         var newRacket = new racketModel({
             model: req.body.name,
             description: req.body.description,
-            owner: isRecreational ? null : req.session.userId, 
+            owner: req.session.userId,
             
-            audienceType: req.body.audienceType,
+            audienceType: audience,
             
-            package: isRecreational ? null : req.body.packageId 
-        });
+            package: (req.body.packageId && req.body.packageId !== '') ? req.body.packageId : null,
+            path: req.file ? "/images/" + req.file.filename : "/images/default.png"
 
+        });
+        
         await newRacket.save();
         return res.json(newRacket);
     } catch (err) {
+        console.error("PODROBNA NAPAKA Mongoose:", err);
+        return res.status(500).json({ message: err.message, details: err.errors });
     }
 },
 

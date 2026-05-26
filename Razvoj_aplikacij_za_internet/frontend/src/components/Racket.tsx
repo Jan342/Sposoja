@@ -11,6 +11,7 @@ function Racket(props: any) {
     
     const user = context?.user as any;
     const isClub = user && (user.role === "klub" || user.isClubMember);
+        console.log("RACKET:", props.racket);
 
     const handleDelete = async () => {
     if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
@@ -64,30 +65,37 @@ function Racket(props: any) {
                 </div>
 
                 <div className="d-flex gap-2 mt-4 justify-content-start">
-                    {user?.accountType === "club" && props.racket.owner === user._id && (
-                        <Button 
-                            variant="outline-light" 
-                            size="sm" 
+
+                {/* OWNER */}
+                {props.racket.owner === user?._id ? (
+                    <>
+                        <Button
+                            variant="outline-light"
+                            size="sm"
                             onClick={() => navigate(`/racket/edit/${props.racket._id}`)}
                         >
                             Uredi podatke
                         </Button>
-                    )}
-                    
-                    {user?.accountType === "club" && props.racket.owner === user._id ? (
-                    <Button variant="danger" size="sm" onClick={handleDelete}>
-                        Izbriši
-                    </Button>
+
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleDelete}
+                        >
+                            Izbriši
+                        </Button>
+                    </>
                 ) : (
-                    <Button 
-                        variant="primary" 
-                        size="sm" 
+                    <Button
+                        variant="primary"
+                        size="sm"
                         onClick={handleRent}
                         disabled={props.racket.rented}
                     >
                         {props.racket.rented ? "Zasedeno" : "Izposoja"}
                     </Button>
                 )}
+
             </div>
             </Card.Body>
         </Card>
