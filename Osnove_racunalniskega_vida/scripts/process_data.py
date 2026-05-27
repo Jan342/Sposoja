@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import os
+import random
 
 def imread_unicode(path):
     try:
@@ -30,21 +31,34 @@ for label, folder in classes.items():
 
     print(f"Processing {label} from {class_path}")
 
-    save_dir = os.path.join(OUT_DIR, label)
-    os.makedirs(save_dir, exist_ok=True)
+    files = [f for f in os.listdir(class_path) if os.path.isfile(os.path.join(class_path, f))]
+    random.shuffle(files)
 
-    for file in os.listdir(class_path):
+    total_files = len(files)
+    train_end = int(total_files * 0.7)
+    val_end = int(total_files * 0.85)
 
-        img_path = os.path.join(class_path, file)
-        img = imread_unicode(img_path)
+    splits = {
+        "train": files[:train_end],
+        "val": files[train_end:val_end],
+        "test": files[val_end:]
+    }
 
-        if img is None:
-            print(f"Skipping bad image: {img_path}")
-            continue
+    for split_name, split_files in splits.items():
+        save_dir = os.path.join(OUT_DIR, split_name, label)
+        os.makedirs(save_dir, exist_ok=True)
 
-        img = cv.resize(img, IMG_SIZE)
+        for file in split_files:
+            img_path = os.path.join(class_path, file)
+            img = imread_unicode(img_path)
 
-        save_path = os.path.join(save_dir, file)
-        cv.imwrite(save_path, img)
+            if img is None:
+                print(f"Skipping bad image: {img_path}")
+                continue
+
+            img = cv.resize(img, IMG_SIZE)
+
+            save_path = os.path.join(save_dir, file)
+            cv.imwrite(save_path, img)
 
 print("dataset ready")
