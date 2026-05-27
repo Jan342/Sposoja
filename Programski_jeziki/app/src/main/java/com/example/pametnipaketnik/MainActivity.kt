@@ -82,10 +82,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Button(
                                 onClick = {
-                                    startScanning(this@MainActivity) { openedBoxId ->
-                                        history = historyRepository.addOpening(openedBoxId)
-                                        showHistory = true
-                                    }
+                                    startScanning(this@MainActivity)
                                 },
                                 modifier = Modifier
                                     .weight(1f)
@@ -135,6 +132,8 @@ class MainActivity : ComponentActivity() {
                                     onClick = {
                                         showDialog = false
                                         showSuccess = true
+                                        history = historyRepository.addOpening(scannedBoxId, "Uspešno")
+                                        showHistory = true
                                         Toast.makeText(
                                             this@MainActivity,
                                             "Paketnik ID $scannedBoxId se je uspešno odprl.",
@@ -149,6 +148,8 @@ class MainActivity : ComponentActivity() {
                                 TextButton(
                                     onClick = {
                                         showDialog = false
+                                        history = historyRepository.addOpening(scannedBoxId, "Neuspešno")
+                                        showHistory = true
                                     },
                                 ) {
                                     Text("NE")
@@ -161,7 +162,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startScanning(context: Context, onOpened: (String) -> Unit) {
+    private fun startScanning(context: Context) {
         val scanner = GmsBarcodeScanning.getClient(context)
         Log.d("D4M", "Odpiram skener...")
 
@@ -179,14 +180,14 @@ class MainActivity : ComponentActivity() {
                 if (boxId.isNotEmpty()) {
                     scannedBoxId = boxId
                     Log.d("D4M", "Box ID: $boxId")
-                    playToken(context, boxId, onOpened)
+                    playToken(context, boxId)
                 } else {
                     Log.e("D4M", "ID-ja ni bilo mogoče dobiti iz: $rawValue")
                 }
             }
     }
 
-    private fun playToken(context: Context, boxId: String, onOpened: (String) -> Unit) {
+    private fun playToken(context: Context, boxId: String) {
         val client = OkHttpClient()
         val json = JSONObject().apply {
             put("boxId", boxId)
@@ -213,7 +214,6 @@ class MainActivity : ComponentActivity() {
                         if (data.isNotEmpty()) {
                             runOnUiThread {
                                 processAndPlay(context, data)
-                                onOpened(boxId)
                             }
                         }
                     } catch (e: Exception) {

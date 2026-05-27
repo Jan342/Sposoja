@@ -29,11 +29,12 @@ class OpeningHistoryRepository(context: Context) {
         }.sortedByDescending { it.openedAtMillis }
     }
 
-    fun addOpening(boxId: String): List<OpeningRecord> {
+    fun addOpening(boxId: String, status: String = "Odprto"): List<OpeningRecord> {
         val updatedHistory = listOf(
             OpeningRecord(
                 boxId = boxId,
                 openedAtMillis = System.currentTimeMillis(),
+                status = status,
             ),
         ) + getHistory()
 

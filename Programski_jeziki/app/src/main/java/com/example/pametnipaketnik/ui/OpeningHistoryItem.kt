@@ -47,10 +47,16 @@ fun OpeningHistoryItem(record: OpeningRecord) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            val statusColor = if (record.status.equals("Neuspešno", ignoreCase = true)) {
+                MaterialTheme.colorScheme.error
+            } else {
+                Color(0xFF1B7F3A)
+            }
+
             Text(
                 text = record.status,
                 style = MaterialTheme.typography.labelLarge,
-                color = Color(0xFF1B7F3A),
+                color = statusColor,
                 fontWeight = FontWeight.SemiBold,
             )
         }
