@@ -5,20 +5,23 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +47,10 @@ import java.io.IOException
 
 class MainActivity : ComponentActivity() {
 
+    private var scannedBoxId by mutableStateOf("")
+    private var showDialog by mutableStateOf(false)
+    private var showSuccess by mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -56,10 +63,7 @@ class MainActivity : ComponentActivity() {
             }
 
             PametniPaketnikTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -87,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                     .weight(1f)
                                     .height(56.dp),
                             ) {
-                                Text("Skeniraj")
+                                Text("Skeniraj in Odpri")
                             }
 
                             OutlinedButton(
@@ -114,6 +118,44 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                showDialog = false
+                            },
+                            title = {
+                                Text("Paketnik")
+                            },
+                            text = {
+                                Text("Ali se je paketnik uspešno odprl?")
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showDialog = false
+                                        showSuccess = true
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "Paketnik ID $scannedBoxId se je uspešno odprl.",
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    },
+                                ) {
+                                    Text("DA")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        showDialog = false
+                                    },
+                                ) {
+                                    Text("NE")
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -125,8 +167,9 @@ class MainActivity : ComponentActivity() {
 
         scanner.startScan()
             .addOnSuccessListener { barcode ->
+                showSuccess = false
                 val rawValue = barcode.rawValue ?: ""
-                Log.d("D4M", "Skeniranje uspelo! Surov tekst: $rawValue")
+                Log.d("D4M", "Skeniranje uspelo! Tekst: $rawValue")
 
                 val cleanUrl = rawValue.removeSuffix("/")
                 val parts = cleanUrl.split("/")
@@ -134,10 +177,11 @@ class MainActivity : ComponentActivity() {
                 val boxId = rawId.trimStart('0')
 
                 if (boxId.isNotEmpty()) {
-                    Log.d("D4M", "Ugotovljen Box ID: $boxId")
+                    scannedBoxId = boxId
+                    Log.d("D4M", "Box ID: $boxId")
                     playToken(context, boxId, onOpened)
                 } else {
-                    Log.e("D4M", "ID-ja ni bilo mogoce dobiti iz: $rawValue")
+                    Log.e("D4M", "ID-ja ni bilo mogoče dobiti iz: $rawValue")
                 }
             }
     }
@@ -157,17 +201,18 @@ class MainActivity : ComponentActivity() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("D4M", "API napaka (preveri internet): ${e.message}")
+                Log.e("D4M", "API napaka: ${e.message}")
             }
 
             override fun onResponse(call: Call, response: Response) {
+                Log.d("D4M", "HTTP CODE: ${response.code}")
                 val responseBody = response.body?.string()
                 if (responseBody != null) {
                     try {
                         val data = JSONObject(responseBody).optString("data")
                         if (data.isNotEmpty()) {
                             runOnUiThread {
-                                proccesAndPlay(context, data)
+                                processAndPlay(context, data)
                                 onOpened(boxId)
                             }
                         }
@@ -179,7 +224,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    fun proccesAndPlay(context: Context, base64Data: String) {
+    fun processAndPlay(context: Context, base64Data: String) {
         try {
             val clean = base64Data.trim().replace("\"", "")
             val bytes = Base64.decode(clean, Base64.DEFAULT)
@@ -193,8 +238,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 success = true
-                Log.d("D4M", "Uspesno odpakirano z GZIP")
-            } catch (e: Exception) {
+                Log.d("D4M", "Uspešno odpakirano z GZIP")
+            } catch (_: Exception) {
                 Log.d("D4M", "GZIP ni uspel.")
             }
 
@@ -206,16 +251,42 @@ class MainActivity : ComponentActivity() {
             }
 
             if (tempFile.exists() && tempFile.length() > 0) {
-                MediaPlayer().apply {
-                    setDataSource(tempFile.absolutePath)
-                    prepare()
-                    start()
-                    Log.d("D4M", "PISKA!")
-                    setOnCompletionListener { it.release() }
+                runOnUiThread {
+                    Toast.makeText(
+                        context,
+                        "Predvajam token za paketnik ID $scannedBoxId",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+
+                val mp = MediaPlayer()
+                try {
+                    mp.setDataSource(tempFile.absolutePath)
+                    mp.prepare()
+                    mp.start()
+                    Log.d("D4M", "Uspešno piska!")
+                    mp.setOnCompletionListener {
+                        it.release()
+                        runOnUiThread {
+                            showDialog = true
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("D4M", "Končna napaka: ${e.message}")
+                    mp.release()
+                    runOnUiThread {
+                        Toast.makeText(context, "Napaka pri predvajanju zvoka", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            } else {
+                runOnUiThread {
+                    Toast.makeText(context, "Napaka: Zvočna datoteka je prazna", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         } catch (e: Exception) {
-            Log.e("D4M", "Koncna napaka: ${e.message}")
+            Log.e("D4M", "Splošna napaka v processAndPlay: ${e.message}")
             e.printStackTrace()
         }
     }

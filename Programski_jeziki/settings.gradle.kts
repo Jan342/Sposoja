@@ -1,6 +1,5 @@
 pluginManagement {
-    repositories {
-        google()
+    repositories {google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -14,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Programski_jeziki"
+rootProject.name = "Sposoja"
 include(":app")
