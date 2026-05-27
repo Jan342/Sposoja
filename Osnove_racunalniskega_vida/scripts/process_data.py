@@ -9,6 +9,17 @@ def imread_unicode(path):
     except:
         return None
 
+def augment_image(img):
+    img_flip = cv.flip(img, 1)
+    
+    # Še ostale augmentacije,
+
+    
+    return [
+        ("orig", img),
+        ("flip", img_flip)
+    ]
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 RAW_DIR = os.path.join(BASE_DIR, "data_raw")
@@ -58,7 +69,11 @@ for label, folder in classes.items():
 
             img = cv.resize(img, IMG_SIZE)
 
-            save_path = os.path.join(save_dir, file)
-            cv.imwrite(save_path, img)
+            augmented_images = augment_image(img)
+
+            for prefix, aug_img in augmented_images:
+                new_filename = f"{prefix}_{file}"
+                save_path = os.path.join(save_dir, new_filename)
+                cv.imwrite(save_path, aug_img)
 
 print("dataset ready")
