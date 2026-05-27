@@ -2,6 +2,7 @@ const racketModel = require('../models/racketModel.js');
 const User = require('../models/userModel.js');
 const Club = require('../models/clubModel.js');
 const Package = require('../models/packageModel.js');
+const LockerLog = require('../models/lockerLogModel.js');
 
 /**
  * photoController.js
@@ -20,7 +21,7 @@ list: async function (req, res) {
         } 
         else {
             query = { 
-                rented: false, 
+                rented: { $ne: true }, 
                 audienceType: 'rekreativec' 
             };
         }
@@ -372,6 +373,7 @@ list: async function (req, res) {
             owner: req.session.userId,
             
             audienceType: audience,
+            rented: false,
             
             package: (req.body.packageId && req.body.packageId !== '') ? req.body.packageId : null,
             path: req.file ? "/images/" + req.file.filename : "/images/default.png"
@@ -435,6 +437,25 @@ list: async function (req, res) {
                         }
 
                         req.session.user = updatedBorrower;
+
+                        // Zabeleži odklepanje paketnika
+                        if (r.package) {
+                            Package.findById(r.package).exec(function (err, pkg) {
+                                if (!err && pkg) {
+                                    var log = new LockerLog({
+                                        user: userType === 'club' ? null : userId,
+                                        racket: r._id,
+                                        package: r.package,
+                                        club: pkg.club,
+                                        action: 'izposoja'
+                                    });
+                                    log.save(function (logErr) {
+                                        if (logErr) console.error('Napaka pri shranjevanju loga:', logErr);
+                                    });
+                                }
+                            });
+                        }
+
                         return res.status(200).json({
                             racket: updatedRacket,
                             user: updatedBorrower

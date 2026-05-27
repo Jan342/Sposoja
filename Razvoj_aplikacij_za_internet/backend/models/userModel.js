@@ -21,6 +21,10 @@ var userSchema = new Schema({
 	'joinedClub' : {
 		type: Schema.Types.ObjectId,
 		ref: 'club'
+	},
+	'assignedPackage' : {
+		type: Schema.Types.ObjectId,
+		ref: 'package'
 	}
 });
 

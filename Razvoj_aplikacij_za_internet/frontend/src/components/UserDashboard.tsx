@@ -45,6 +45,8 @@ function UserDashboard(){
     const [error, setError] = useState<string>("");
     const nav = useNavigate();
 
+    const [rekreativniRackets, setRekreativniRackets] = useState<RacketData[]>([]);
+
     useEffect(function(){
         if(userContext.user?.role == 'rekreativec'){
             const loadClubs = async function(){
@@ -54,15 +56,27 @@ function UserDashboard(){
             };
             loadClubs();
         }
-        else{
-            const loadRackets = async function(){
+        else if(userContext.user?.role == 'clan'){
+            // Naloži loparje kluba (zgoraj)
+            const loadClubRackets = async function(){
                 const res = new ServerRequest(`clubs/clubRackets`);
                 const data = await (await res.get()).json();
-                setRackets(data || []);
+                const clubOnly = (data || []).filter((r: any) => r.audienceType === 'klub');
+                setRackets(clubOnly);
             };
-            loadRackets();
+            loadClubRackets();
+
+            // Naloži rekreativne loparje (spodaj)
+            const loadRekreativni = async function(){
+                const res = new ServerRequest(`rackets`);
+                const data = await (await res.get()).json();
+                const recreational = data.filter((r: any) => r.audienceType === 'rekreativec' && !r.rented);
+                setRekreativniRackets(recreational);
+            };
+            loadRekreativni();
         }
-    }, [userContext.user?.role]);
+    }, [userContext.user?.role, reload]);
+
 
     async function joinClub(club: ClubData){
         setSelectedClub(null)
@@ -182,13 +196,23 @@ function UserDashboard(){
                     <div className="bg-dark p-4 rounded mb-4 border border-secondary border-opacity-25 shadow-sm">
                         <h3 className="fw-bold mb-2 text-white">Trenutno nimaš izposojenega nobenega loparja 🎒</h3>
                     </div>
-                    <h4 className="fw-bold mb-3 text-black">Razpoložljivi loparji:</h4>
+                    
+                    <h4 className="fw-bold mb-3 text-black">Klubski loparji:</h4>
                     <Row>
-                        {rackets.map((racket: any) => (
+                        {rackets.length > 0 ? rackets.map((racket: any) => (
                             <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
-                                <Racket racket={racket} onRentSuccess={() => window.location.reload()} />
+                                <Racket racket={racket} onRentSuccess={refreshRackets} />
                             </Col>
-                        ))}
+                        )) : <Col><p className="text-muted">Trenutno ni na voljo klubskih loparjev.</p></Col>}
+                    </Row>
+
+                    <h4 className="fw-bold mt-5 mb-3 text-black">Rekreativni loparji:</h4>
+                    <Row>
+                        {rekreativniRackets.length > 0 ? rekreativniRackets.map((racket: any) => (
+                            <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
+                                <Racket racket={racket} onRentSuccess={refreshRackets} />
+                            </Col>
+                        )) : <Col><p className="text-muted">Trenutno ni na voljo rekreativnih loparjev.</p></Col>}
                     </Row>
                 </div>
             )}
