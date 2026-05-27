@@ -11,7 +11,7 @@ var userSchema = new Schema({
 	'profileImage': String,
 	'role' : {
 		type: String,
-	enum: ['clan', 'rekreativec'],
+	enum: ['klub', 'clan', 'rekreativec'],
 	default: 'rekreativec' 
 	},
 	'rented' : {
@@ -21,6 +21,10 @@ var userSchema = new Schema({
 	'joinedClub' : {
 		type: Schema.Types.ObjectId,
 		ref: 'club'
+	},
+	'assignedPackage' : {
+		type: Schema.Types.ObjectId,
+		ref: 'package'
 	}
 });
 

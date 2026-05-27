@@ -81,14 +81,20 @@ function Profile() {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage("Profilna slika uspešno posodobljena!");
-                setImageBase64(null);
-                
-                if (context && context.setUserContext) {
-                    context.setUserContext(data);
-                } else if (context && (context as any).setUser) {
-                    (context as any).setUser(data);
-                }
+                        setMessage("Profilna slika uspešno posodobljena!");
+                        setImageBase64(null);
+                        
+                        if (context && context.setUserContext) {
+            context.setUserContext({
+                ...user,
+                ...data
+            });
+        } else if (context && (context as any).setUser) {
+            (context as any).setUser({
+                ...user,
+                ...data
+            });
+        }       
             } else {
                 setError(data.error || "Nalaganje slike ni uspelo.");
             }

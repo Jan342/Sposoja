@@ -2,6 +2,7 @@ var ClubModel = require('../models/clubModel.js');
 var UserModel = require('../models/userModel.js');
 var Package = require('../models/packageModel.js');
 const racketModel = require('../models/racketModel.js');
+const LockerLog = require('../models/lockerLogModel.js');
 
 /**
  * clubController.js
@@ -10,10 +11,10 @@ const racketModel = require('../models/racketModel.js');
  */
 module.exports = {
 
-    list: function(req,res){ 
-        ClubModel.find().exec(function(err,c){
-            if(err){
-                return res.status(500).json({error: "Server Error"});
+    list: function (req, res) {
+        ClubModel.find().exec(function (err, c) {
+            if (err) {
+                return res.status(500).json({ error: "Server Error" });
             }
 
             return res.status(200).json(c);
@@ -23,12 +24,12 @@ module.exports = {
     create: async function (req, res) {
         var username = req.body.clubName;
 
-        if(req.body.password !== req.body.cpassword){
-            return res.status(400).json({error: "Wrong password"});
+        if (req.body.password !== req.body.cpassword) {
+            return res.status(400).json({ error: "Wrong password" });
         }
 
-        if(!username){
-            return res.status(400).json({error: "Club name is required"});
+        if (!username) {
+            return res.status(400).json({ error: "Club name is required" });
         }
 
         try {
@@ -64,12 +65,12 @@ module.exports = {
         }
     },
 
-    settings: function(req, res) {
+    settings: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ error: "Only clubs can view club settings" });
         }
 
-        ClubModel.findById(req.session.userId).exec(function(err, club) {
+        ClubModel.findById(req.session.userId).exec(function (err, club) {
             if (err) {
                 return res.status(500).json({ error: "Error when finding club" });
             }
@@ -78,7 +79,7 @@ module.exports = {
                 return res.status(404).json({ error: "Club not found" });
             }
 
-            Package.countDocuments({ club: club._id }).exec(function(err, packageTotal) {
+            Package.countDocuments({ club: club._id }).exec(function (err, packageTotal) {
                 if (err) {
                     return res.status(500).json({ error: "Error when counting packages" });
                 }
@@ -91,7 +92,7 @@ module.exports = {
         });
     },
 
-    updateSettings: function(req, res) {
+    updateSettings: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ error: "Only clubs can update club settings" });
         }
@@ -102,7 +103,7 @@ module.exports = {
             return res.status(400).json({ error: "Package count must be a positive whole number" });
         }
 
-        ClubModel.findById(req.session.userId).exec(function(err, club) {
+        ClubModel.findById(req.session.userId).exec(function (err, club) {
             if (err) {
                 return res.status(500).json({ error: "Error when finding club" });
             }
@@ -111,7 +112,7 @@ module.exports = {
                 return res.status(404).json({ error: "Club not found" });
             }
 
-            Package.countDocuments({ club: club._id }).exec(function(err, packageTotal) {
+            Package.countDocuments({ club: club._id }).exec(function (err, packageTotal) {
                 if (err) {
                     return res.status(500).json({ error: "Error when counting packages" });
                 }
@@ -123,7 +124,7 @@ module.exports = {
                 }
 
                 club.packageCount = packageCount;
-                club.save(function(err, savedClub) {
+                club.save(function (err, savedClub) {
                     if (err) {
                         return res.status(500).json({ error: "Error when updating club settings" });
                     }
@@ -141,8 +142,8 @@ module.exports = {
         });
     },
 
-    joinClub: function(req, res) {
-        UserModel.findById(req.session.userId).exec(function(err, user) {
+    joinClub: function (req, res) {
+        UserModel.findById(req.session.userId).exec(function (err, user) {
             if (err) {
                 return res.status(500).json({
                     error: "Error fetching user"
@@ -161,7 +162,7 @@ module.exports = {
                 });
             }
 
-            UserModel.findByIdAndUpdate(req.session.userId,{role: 'clan',joinedClub: req.body.club_id},{ new: true }).select('-password').exec(function(err, u) {
+            UserModel.findByIdAndUpdate(req.session.userId, { role: 'clan', joinedClub: req.body.club_id }, { new: true }).select('-password').exec(function (err, u) {
                 if (err) {
                     return res.status(500).json({
                         error: "Couldn't join to the club"
@@ -173,9 +174,9 @@ module.exports = {
         });
     },
 
-    getclubRackets: function(req,res){
+    getclubRackets: function (req, res) {
 
-        UserModel.findById(req.session.userId).exec(function(err, user) {
+        UserModel.findById(req.session.userId).exec(function (err, user) {
 
             if (err) {
                 return res.status(500).json(err);
@@ -187,7 +188,7 @@ module.exports = {
                 });
             }
 
-            Package.find({ club: user.joinedClub }).exec(function(err, packages) {
+            Package.find({ club: user.joinedClub }).exec(function (err, packages) {
 
                 if (err) {
                     return res.status(500).json(err);
@@ -195,7 +196,7 @@ module.exports = {
 
                 const packageIds = packages.map(p => p._id);
 
-                racketModel.find({package: { $in: packageIds }}).exec(function(err, rackets) {
+                racketModel.find({ package: { $in: packageIds } }).exec(function (err, rackets) {
                     if (err) {
                         return res.status(500).json(err);
                     }
@@ -204,5 +205,79 @@ module.exports = {
                 });
             });
         });
+    },
+
+    getMembers: function (req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ error: "Samo klubi lahko vidijo člane" });
+        }
+
+        UserModel.find({ joinedClub: req.session.userId })
+            .select('-password')
+            .populate('assignedPackage', 'name location')
+            .exec(function (err, members) {
+                if (err) {
+                    return res.status(500).json({ error: "Napaka pri pridobivanju članov" });
+                }
+                return res.status(200).json(members);
+            });
+    },
+
+    assignPackage: function (req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ error: "Samo klubi lahko dodeljujejo paketnike" });
+        }
+
+        const { userId } = req.params;
+        const { packageId } = req.body;
+
+        UserModel.findOne({ _id: userId, joinedClub: req.session.userId }).exec(function (err, user) {
+            if (err) return res.status(500).json({ error: "Napaka pri iskanju člana" });
+            if (!user) return res.status(404).json({ error: "Član ni najden ali ne pripada temu klubu" });
+
+            if (!packageId) {
+                user.assignedPackage = undefined;
+                user.save(function (err, saved) {
+                    if (err) return res.status(500).json({ error: "Napaka pri odstranjevanju paketnika" });
+                    return res.status(200).json({ message: "Dodelitev paketnika odstranjena", user: saved });
+                });
+                return;
+            }
+
+            Package.findOne({ _id: packageId, club: req.session.userId }).exec(function (err, pkg) {
+                if (err) return res.status(500).json({ error: "Napaka pri iskanju paketnika" });
+                if (!pkg) return res.status(404).json({ error: "Paketnik ni najden ali ne pripada temu klubu" });
+
+                user.assignedPackage = pkg._id;
+                user.save(function (err, saved) {
+                    if (err) return res.status(500).json({ error: "Napaka pri dodeljevanju paketnika" });
+                    return res.status(200).json({ message: "Paketnik uspešno dodeljen", user: saved });
+                });
+            });
+        });
+    },
+
+    getHistory: function (req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ error: "Samo klubi lahko vidijo zgodovino" });
+        }
+
+        const filter = { club: req.session.userId };
+        if (req.query.packageId) {
+            filter.package = req.query.packageId;
+        }
+
+        LockerLog.find(filter)
+            .populate('user', 'username firstName lastName')
+            .populate('racket', 'model')
+            .populate('package', 'name location')
+            .sort({ timestamp: -1 })
+            .limit(200)
+            .exec(function (err, logs) {
+                if (err) {
+                    return res.status(500).json({ error: "Napaka pri pridobivanju zgodovine" });
+                }
+                return res.status(200).json(logs);
+            });
     }
 };

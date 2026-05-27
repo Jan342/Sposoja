@@ -10,7 +10,8 @@ function Racket(props: any) {
     const context = useContext(UserContext);
     
     const user = context?.user as any;
-    const isClub = user && (user.role === "club" || user.isClubMember);
+    const isClub = user && (user.role === "klub" || user.isClubMember);
+        console.log("RACKET:", props.racket);
 
     const handleDelete = async () => {
     if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
@@ -33,11 +34,15 @@ function Racket(props: any) {
 };
     
     async function handleRent() {
+        if (props.racket.rented) {
+        alert("Ta lopar je že zaseden!");
+        return;
+    }
         const res = new ServerRequest("rackets/rentRacket");
         const responseObj = await res.post({ racket: props.racket._id });
         const data = await responseObj.json();
 
-        if (data.user || data.success || responseObj.status === 200) {            
+        if (responseObj.status === 200) { 
             if (context && context.setUserContext && data.user) {
                 context.setUserContext(data.user);
             }
@@ -60,20 +65,38 @@ function Racket(props: any) {
                 </div>
 
                 <div className="d-flex gap-2 mt-4 justify-content-start">
-                    <Button variant="outline-light" size="sm" onClick={() => navigate(`/racket/${props.racket._id}`)}>
-                        Podrobnosti
-                    </Button>
-                    
-                    {props.racket.owner === "klub" ? (
-                        <Button variant="danger" size="sm" onClick={handleDelete}>
+
+                {/* OWNER */}
+                {props.racket.owner === user?._id ? (
+                    <>
+                        <Button
+                            variant="outline-light"
+                            size="sm"
+                            onClick={() => navigate(`/racket/edit/${props.racket._id}`)}
+                        >
+                            Uredi podatke
+                        </Button>
+
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleDelete}
+                        >
                             Izbriši
                         </Button>
-                    ) : (
-                        <Button variant="primary" size="sm" onClick={handleRent}>
-                            Izposoja
-                        </Button>
-                    )}
-                </div>
+                    </>
+                ) : (
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleRent}
+                        disabled={props.racket.rented}
+                    >
+                        {props.racket.rented ? "Zasedeno" : "Izposoja"}
+                    </Button>
+                )}
+
+            </div>
             </Card.Body>
         </Card>
     );

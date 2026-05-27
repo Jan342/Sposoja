@@ -3,6 +3,8 @@ var ClubModel = require('../models/clubModel.js');
 var racketModel = require('../models/racketModel.js');
 const Club = require('../models/clubModel.js');
 const User = require('../models/userModel.js');
+const Package = require('../models/packageModel.js');
+const LockerLog = require('../models/lockerLogModel.js');
 
 /**
  * userController.js
@@ -12,12 +14,12 @@ const User = require('../models/userModel.js');
 module.exports = {
 
     create: async function (req, res) {
-        if(req.body.password !== req.body.cpassword){
-            return res.status(400).json({error: "Wrong password"});
+        if (req.body.password !== req.body.cpassword) {
+            return res.status(400).json({ error: "Wrong password" });
         }
 
-        if(!req.body.username){
-            return res.status(400).json({error: "Username is required"});
+        if (!req.body.username) {
+            return res.status(400).json({ error: "Username is required" });
         }
 
         try {
@@ -44,15 +46,15 @@ module.exports = {
                     accountType: 'club'
                 });
             }
-            else{
+            else {
                 var user = new UserModel({
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
-                    username : req.body.username,
+                    username: req.body.username,
                     address: req.body.address,
-                    password : req.body.password,
+                    password: req.body.password,
                     role: 'rekreativec',
-                    rented : null
+                    rented: null
                 });
 
                 var savedUser = await user.save();
@@ -70,43 +72,43 @@ module.exports = {
         }
     },
 
-    uploadProfileImage: async function(req, res) {
-    if (!req.session || !req.session.userId) {
-        return res.status(401).json({ error: "Nisi prijavljen." });
-    }
+    uploadProfileImage: async function (req, res) {
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ error: "Nisi prijavljen." });
+        }
         const base64Image = req.body.image;
 
-    if (!base64Image) {
-        return res.status(400).json({ error: "Slika ni bila prejeta." });
-    }
-    
-    try {
-        let updatedUser = await UserModel.findByIdAndUpdate(
-            req.session.userId, 
-            { profileImage: base64Image },
-            { new: true }
-        ).exec();
+        if (!base64Image) {
+            return res.status(400).json({ error: "Slika ni bila prejeta." });
+        }
 
-        if (!updatedUser) {
-            updatedUser = await ClubModel.findByIdAndUpdate(
-                req.session.userId, 
-                { profileImage: base64Image }, 
+        try {
+            let updatedUser = await UserModel.findByIdAndUpdate(
+                req.session.userId,
+                { profileImage: base64Image },
                 { new: true }
             ).exec();
-        }
 
-        if (!updatedUser) {
-            return res.status(404).json({ error: "Uporabnik ali klub ni najden." });
-        }
+            if (!updatedUser) {
+                updatedUser = await ClubModel.findByIdAndUpdate(
+                    req.session.userId,
+                    { profileImage: base64Image },
+                    { new: true }
+                ).exec();
+            }
 
-        return res.json(updatedUser);
-    } catch (err) {
-        return res.status(500).json({ 
-            error: "Napaka pri shranjevanju slike.", 
-            details: err.message 
-        });
-    }
-},
+            if (!updatedUser) {
+                return res.status(404).json({ error: "Uporabnik ali klub ni najden." });
+            }
+
+            return res.json(updatedUser);
+        } catch (err) {
+            return res.status(500).json({
+                error: "Napaka pri shranjevanju slike.",
+                details: err.message
+            });
+        }
+    },
 
     returnRacket: function (req, res) {
         const userId = req.session.userId;
@@ -144,6 +146,24 @@ module.exports = {
                     }
 
                     req.session.user = updatedBorrower;
+
+                    if (updatedRacket && updatedRacket.package) {
+                        Package.findById(updatedRacket.package).exec(function (err, pkg) {
+                            if (!err && pkg) {
+                                var log = new LockerLog({
+                                    user: userType === 'club' ? null : userId,
+                                    racket: updatedRacket._id,
+                                    package: updatedRacket.package,
+                                    club: pkg.club,
+                                    action: 'vrnitev'
+                                });
+                                log.save(function (logErr) {
+                                    if (logErr) console.error('Napaka pri shranjevanju loga:', logErr);
+                                });
+                            }
+                        });
+                    }
+
                     return res.status(200).json(updatedBorrower);
                 });
             });
