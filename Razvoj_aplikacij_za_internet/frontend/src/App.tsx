@@ -14,6 +14,7 @@ import Profile from './components/Profile'
 import type { AuthEntity } from './types/user'
 import ClubDetails from './components/ClubDetails'
 import EditRacket from "./components/EditRacket";
+import Home from './components/Home';
 
 function App() {
   const [user, setUser] = useState<AuthEntity | null>(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -32,6 +33,7 @@ function App() {
             <div className="App">
               <Header></Header>
               <Routes>
+                <Route path="/" element={<Home />} />
                 <Route path="/register" element={<GuestRoute><Register /></GuestRoute>}></Route>
                 <Route path="/login" element={<GuestRoute><Login /></GuestRoute>}></Route>
                 <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>}></Route>
