@@ -13,11 +13,14 @@ def augment_image(img):
     img_flip = cv.flip(img, 1)
     
     # Še ostale augmentacije,
-
+    img_rotate = cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
+    img_rotate = cv.rotate(img_rotate, cv.ROTATE_90_CLOCKWISE)
+    img_rotate = cv.rotate(img_rotate, cv.ROTATE_90_CLOCKWISE)
     
     return [
         ("orig", img),
-        ("flip", img_flip)
+        ("flip", img_flip),
+        ("rotate", img_rotate)
     ]
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
