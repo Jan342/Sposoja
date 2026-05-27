@@ -10,96 +10,96 @@ const LockerLog = require('../models/lockerLogModel.js');
  * @description :: Server-side logic for managing rackets.
  */
 module.exports = {
-list: async function (req, res) {
-    try {
-        let query;
+    list: async function (req, res) {
+        try {
+            let query;
 
-        if (req.session && req.session.userId && req.session.userType === 'club') {
-            const clubPackages = await Package.find({ club: req.session.userId });
-            const packageIds = clubPackages.map(p => p._id);
-            query = { package: { $in: packageIds } }; 
-        } 
-        else {
-            query = { 
-                rented: { $ne: true }, 
-                audienceType: 'rekreativec' 
-            };
+            if (req.session && req.session.userId && req.session.userType === 'club') {
+                const clubPackages = await Package.find({ club: req.session.userId });
+                const packageIds = clubPackages.map(p => p._id);
+                query = { package: { $in: packageIds } };
+            }
+            else {
+                query = {
+                    rented: { $ne: true },
+                    audienceType: 'rekreativec'
+                };
+            }
+
+            var rackets = await racketModel.find(query);
+            return res.json(rackets);
+
+        } catch (err) {
+            console.error("NAPAKA:", err);
+            return res.status(500).json({
+                message: 'Error when getting rackets.',
+                error: err.message
+            });
         }
-
-        var rackets = await racketModel.find(query);
-        return res.json(rackets);
-
-    } catch (err) {
-        console.error("NAPAKA:", err);
-        return res.status(500).json({
-            message: 'Error when getting rackets.',
-            error: err.message
-        });
-    }
-},
-    listPackages: function(req, res) {
+    },
+    listPackages: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can view packages" });
         }
 
         Package.find({ club: req.session.userId })
-        .exec(function(err, packages) {
-            if (err) {
-                return res.status(500).json({
-                    message: "Error when getting packages",
-                    error: err
-                });
-            }
-
-            Club.findById(req.session.userId).exec(function(err, club) {
+            .exec(function (err, packages) {
                 if (err) {
                     return res.status(500).json({
-                        message: "Error when getting club",
+                        message: "Error when getting packages",
                         error: err
                     });
                 }
 
-                if (!club) {
-                    return res.status(404).json({ message: "Club not found" });
-                }
-
-                racketModel.aggregate([
-                    { $match: { package: { $in: packages.map(function(packageItem) { return packageItem._id; }) } } },
-                    { $group: { _id: "$package", racketTotal: { $sum: 1 } } }
-                ]).exec(function(err, racketCounts) {
+                Club.findById(req.session.userId).exec(function (err, club) {
                     if (err) {
                         return res.status(500).json({
-                            message: "Error when counting rackets",
+                            message: "Error when getting club",
                             error: err
                         });
                     }
 
-                    var packageData = packages.map(function(packageItem) {
-                        var count = racketCounts.find(function(racketCount) {
-                            return String(racketCount._id) === String(packageItem._id);
+                    if (!club) {
+                        return res.status(404).json({ message: "Club not found" });
+                    }
+
+                    racketModel.aggregate([
+                        { $match: { package: { $in: packages.map(function (packageItem) { return packageItem._id; }) } } },
+                        { $group: { _id: "$package", racketTotal: { $sum: 1 } } }
+                    ]).exec(function (err, racketCounts) {
+                        if (err) {
+                            return res.status(500).json({
+                                message: "Error when counting rackets",
+                                error: err
+                            });
+                        }
+
+                        var packageData = packages.map(function (packageItem) {
+                            var count = racketCounts.find(function (racketCount) {
+                                return String(racketCount._id) === String(packageItem._id);
+                            });
+
+                            var packageObject = packageItem.toObject();
+                            packageObject.racketTotal = count ? count.racketTotal : 0;
+                            return packageObject;
                         });
 
-                        var packageObject = packageItem.toObject();
-                        packageObject.racketTotal = count ? count.racketTotal : 0;
-                        return packageObject;
-                    });
-
-                    return res.json({
-                        packages: packageData,
-                        packageCount: club.packageCount,
-                        remaining: Math.max(club.packageCount - packages.length, 0)
+                        return res.json({
+                            packages: packageData,
+                            packageCount: club.packageCount,
+                            remaining: Math.max(club.packageCount - packages.length, 0)
+                        });
                     });
                 });
             });
-        });
     },
 
-    listPackageRackets: function(req, res) {
+    listPackageRackets: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can view package rackets" });
         }
 
-        Package.findOne({ _id: req.params.id, club: req.session.userId }).exec(function(err, packageItem) {
+        Package.findOne({ _id: req.params.id, club: req.session.userId }).exec(function (err, packageItem) {
             if (err) {
                 return res.status(500).json({
                     message: "Error when getting package",
@@ -112,23 +112,23 @@ list: async function (req, res) {
             }
 
             racketModel.find({ package: String(packageItem._id) })
-            .exec(function(err, rackets) {
-                if (err) {
-                    return res.status(500).json({
-                        message: "Error when getting rackets",
-                        error: err
-                    });
-                }
+                .exec(function (err, rackets) {
+                    if (err) {
+                        return res.status(500).json({
+                            message: "Error when getting rackets",
+                            error: err
+                        });
+                    }
 
-                return res.json({
-                    package: packageItem,
-                    rackets: rackets
+                    return res.json({
+                        package: packageItem,
+                        rackets: rackets
+                    });
                 });
-            });
         });
     },
 
-    createPackage: function(req, res) {
+    createPackage: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can add packages" });
         }
@@ -143,7 +143,7 @@ list: async function (req, res) {
             return res.status(400).json({ message: "Racket limit must be a positive whole number" });
         }
 
-        Club.findById(req.session.userId).exec(function(err, club) {
+        Club.findById(req.session.userId).exec(function (err, club) {
             if (err) {
                 return res.status(500).json({
                     message: "Error when getting club",
@@ -155,7 +155,7 @@ list: async function (req, res) {
                 return res.status(404).json({ message: "Club not found" });
             }
 
-            Package.countDocuments({ club: club._id }).exec(function(err, packageTotal) {
+            Package.countDocuments({ club: club._id }).exec(function (err, packageTotal) {
                 if (err) {
                     return res.status(500).json({
                         message: "Error when counting packages",
@@ -174,7 +174,7 @@ list: async function (req, res) {
                     club: club._id
                 });
 
-                package.save(function(err, savedPackage) {
+                package.save(function (err, savedPackage) {
                     if (err) {
                         return res.status(500).json({
                             message: "Error when creating package",
@@ -188,7 +188,7 @@ list: async function (req, res) {
         });
     },
 
-    updatePackageLimit: function(req, res) {
+    updatePackageLimit: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ message: "Only clubs can update packages" });
         }
@@ -199,7 +199,7 @@ list: async function (req, res) {
             return res.status(400).json({ message: "Racket limit must be a positive whole number" });
         }
 
-        Package.findOne({ _id: req.params.id, club: req.session.userId }).exec(function(err, packageItem) {
+        Package.findOne({ _id: req.params.id, club: req.session.userId }).exec(function (err, packageItem) {
             if (err) {
                 return res.status(500).json({
                     message: "Error when getting package",
@@ -211,7 +211,7 @@ list: async function (req, res) {
                 return res.status(404).json({ message: "Package not found" });
             }
 
-            racketModel.countDocuments({ package: packageItem._id }).exec(function(err, racketTotal) {
+            racketModel.countDocuments({ package: packageItem._id }).exec(function (err, racketTotal) {
                 if (err) {
                     return res.status(500).json({
                         message: "Error when counting rackets",
@@ -226,7 +226,7 @@ list: async function (req, res) {
                 }
 
                 packageItem.racketLimit = racketLimit;
-                packageItem.save(function(err, savedPackage) {
+                packageItem.save(function (err, savedPackage) {
                     if (err) {
                         return res.status(500).json({
                             message: "Error when updating package",
@@ -271,8 +271,8 @@ list: async function (req, res) {
             return res.status(400).json({ message: "Image is required" });
         }
         var racket = new racketModel({
-            model : req.body.name,
-            path : "/images/"+req.file.filename,
+            model: req.body.name,
+            path: "/images/" + req.file.filename,
             description: req.body.description,
             rated: 0,
             rented: false,
@@ -280,19 +280,19 @@ list: async function (req, res) {
             owner: req.session.userId
         });
 
-        Package.findOne({ _id: req.body.packageId, club: req.session.userId }).exec(function(err, package){
+        Package.findOne({ _id: req.body.packageId, club: req.session.userId }).exec(function (err, package) {
             if (err) {
                 return res.status(500).json({
                     message: "DB error",
                     error: err
                 });
             }
-            
+
             if (!package) {
                 return res.status(404).json({ message: "Package not found" });
             }
 
-            racketModel.countDocuments({ package: package._id }).exec(function(err, racketTotal) {
+            racketModel.countDocuments({ package: package._id }).exec(function (err, racketTotal) {
                 if (err) {
                     return res.status(500).json({
                         message: "Error when counting rackets",
@@ -305,15 +305,15 @@ list: async function (req, res) {
                 }
 
                 racket.save(function (err, photo) {
-                if (err) {
-                    return res.status(500).json({
-                        message: 'Error when creating racket',
-                        error: err
-                    });
-                }
+                    if (err) {
+                        return res.status(500).json({
+                            message: 'Error when creating racket',
+                            error: err
+                        });
+                    }
 
-                return res.status(201).json(racket);
-            });
+                    return res.status(201).json(racket);
+                });
             });
         })
     },
@@ -332,61 +332,61 @@ list: async function (req, res) {
     },
 
     remove: async function (req, res) {
-    var id = req.params.id;
+        var id = req.params.id;
 
-    try {
-        var racket = await racketModel.findById(id);
-        
-        if (!racket) {
-            return res.status(404).json({
-                message: 'Lopar ni bil najden.',
+        try {
+            var racket = await racketModel.findById(id);
+
+            if (!racket) {
+                return res.status(404).json({
+                    message: 'Lopar ni bil najden.',
+                });
+            }
+
+            if (racket.owner.toString() !== req.session.userId) {
+                return res.status(403).json({
+                    message: 'Nimate dovoljenja za brisanje tega loparja.',
+                });
+            }
+            await racketModel.findByIdAndDelete(id);
+
+            return res.status(200).json({
+                message: 'Lopar je bil uspešno izbrisan.',
+            });
+
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Napaka pri brisanju loparja.',
+                error: err.message
             });
         }
-
-        if (racket.owner.toString() !== req.session.userId) {
-            return res.status(403).json({
-                message: 'Nimate dovoljenja za brisanje tega loparja.',
-            });
-        }
-        await racketModel.findByIdAndDelete(id);
-
-        return res.status(200).json({
-            message: 'Lopar je bil uspešno izbrisan.',
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            message: 'Napaka pri brisanju loparja.',
-            error: err.message
-        });
-    }
-},
+    },
     addRacket: async function (req, res) {
-    try {
-        console.log("Prejeti body:", req.body);
-        const audience = req.body.audienceType;
-        const isRecreational = req.body.audienceType === 'rekreativec';
+        try {
+            console.log("Prejeti body:", req.body);
+            const audience = req.body.audienceType;
+            const isRecreational = req.body.audienceType === 'rekreativec';
 
-        var newRacket = new racketModel({
-            model: req.body.name,
-            description: req.body.description,
-            owner: req.session.userId,
-            
-            audienceType: audience,
-            rented: false,
-            
-            package: (req.body.packageId && req.body.packageId !== '') ? req.body.packageId : null,
-            path: req.file ? "/images/" + req.file.filename : "/images/default.png"
+            var newRacket = new racketModel({
+                model: req.body.name,
+                description: req.body.description,
+                owner: req.session.userId,
 
-        });
-        
-        await newRacket.save();
-        return res.json(newRacket);
-    } catch (err) {
-        console.error("PODROBNA NAPAKA Mongoose:", err);
-        return res.status(500).json({ message: err.message, details: err.errors });
-    }
-},
+                audienceType: audience,
+                rented: false,
+
+                package: (req.body.packageId && req.body.packageId !== '') ? req.body.packageId : null,
+                path: req.file ? "/images/" + req.file.filename : "/images/default.png"
+
+            });
+
+            await newRacket.save();
+            return res.json(newRacket);
+        } catch (err) {
+            console.error("PODROBNA NAPAKA Mongoose:", err);
+            return res.status(500).json({ message: err.message, details: err.errors });
+        }
+    },
 
     rent: function (req, res) {
         const userId = req.session.userId;
@@ -438,7 +438,6 @@ list: async function (req, res) {
 
                         req.session.user = updatedBorrower;
 
-                        // Zabeleži odklepanje paketnika
                         if (r.package) {
                             Package.findById(r.package).exec(function (err, pkg) {
                                 if (!err && pkg) {

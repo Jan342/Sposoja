@@ -32,7 +32,7 @@ router.put('/packages/:id/limit', requiresLogin, racketController.updatePackageL
 router.post('/addRacket', requiresLogin, upload.single('image'), racketController.addRacket);
 router.delete('/:id', requiresLogin, racketController.remove);
 router.get('/:id', requiresLogin, racketController.show);
-router.put('/:id', requiresLogin, racketController.update);
+router.put('/:id', requiresLogin, upload.single('image'), racketController.update);
 
 router.post('/rentRacket', requiresLogin, racketController.rent);
 
