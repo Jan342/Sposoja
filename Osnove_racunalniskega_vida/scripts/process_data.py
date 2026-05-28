@@ -9,6 +9,16 @@ def imread_unicode(path):
     except:
         return None
 
+def preprocess_image(img):
+    img = cv.GaussianBlur(img, (3, 3), 0)
+
+    gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+    gray = cv.equalizeHist(gray)
+
+    img = cv.cvtColor(gray, cv.COLOR_GRAY2RGB)
+    img = cv.normalize(img, None, alpha=0, beta=255, norm_type=cv.NORM_MINMAX)
+    return img
+
 def augment_image(img):
     img_flip = cv.flip(img, 1)
     
@@ -90,6 +100,7 @@ for label, folder in classes.items():
             img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
 
             img = cv.resize(img, IMG_SIZE)
+            img = preprocess_image(img)
 
             augmented_images = augment_image(img)
 
