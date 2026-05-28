@@ -26,6 +26,8 @@ def augment_image(img):
     img_dark = cv.convertScaleAbs(img, alpha=1.0, beta=-40)
     img_dark1 = cv.convertScaleAbs(img, alpha=1.0, beta=-60)
 
+    img_blur = cv.GaussianBlur(img, (9, 9), 0)
+
     return [
         ("orig", img),
         ("flip", img_flip),
@@ -34,7 +36,8 @@ def augment_image(img):
         ("bright", img_bright),
         ("bright1", img_bright1),
         ("dark", img_dark),
-        ("dark1", img_dark1)
+        ("dark1", img_dark1),
+        ("blur", img_blur)
     ]
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
