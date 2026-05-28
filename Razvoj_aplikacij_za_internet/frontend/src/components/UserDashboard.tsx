@@ -219,28 +219,26 @@ function UserDashboard() {
     }
 
     return (
-        <>
-            <Row>
-                {clubs.map((club) => (
-                    <Col key={club._id} xs={12} md={6} className="mb-4">
-                        <Card bg="dark" text="white" className="shadow-sm h-100">
-                            <Card.Img
-                                variant="top"
-                                src={"../../public/racket.jpg"}
-                                style={{ height: "220px", objectFit: "cover" }}
-                            />
-                            <Card.Body>
-                                <Card.Title>{club.clubName}</Card.Title>
-                                <div className="d-flex gap-3">
-                                    <Button onClick={() => nav(`/clubs/${club._id}`)}>Podrobnosti</Button>
-                                    <Button onClick={() => getPopup.confirm({text: "Ali se želite včlaniti?",showCancel: true, onConfirm: () => joinClub(club)})}>Včlani se</Button>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-        </>
+        <Row>
+            {clubs.map((club) => (
+                <Col key={club._id} xs={12} md={6} className="mb-4">
+                    <Card bg="dark" text="white" className="shadow-sm h-100">
+                        <Card.Img
+                            variant="top"
+                            src={"../../public/racket.jpg"}
+                            style={{ height: "220px", objectFit: "cover" }}
+                        />
+                        <Card.Body>
+                            <Card.Title>{club.clubName}</Card.Title>
+                            <div className="d-flex gap-3">
+                                <Button onClick={() => nav(`/clubs/${club._id}`)}>Podrobnosti</Button>
+                                <Button onClick={() => getPopup.confirm({text: "Ali se želite včlaniti?",showCancel: true, onConfirm: () => joinClub(club)})}>Včlani se</Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            ))}
+        </Row>
     );
 }
 
