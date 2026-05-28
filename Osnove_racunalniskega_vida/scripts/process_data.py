@@ -12,23 +12,29 @@ def imread_unicode(path):
 def augment_image(img):
     img_flip = cv.flip(img, 1)
     
-    # Rotacija za 15 stopinj (v nasprotni smeri urinega kazalca)
     h, w = img.shape[:2]
     center = (w // 2, h // 2)
     
-    # Ustvarimo rotacijsko matriko. Kot=15, scale=1.0 (brez povečave)
     M_15 = cv.getRotationMatrix2D(center, 15, 1.0)
     img_rotate_15 = cv.warpAffine(img, M_15, (w, h))
 
-    # Rotacija za -15 stopinj (v smeri urinega kazalca)
     M_neg15 = cv.getRotationMatrix2D(center, -15, 1.0)
     img_rotate_neg15 = cv.warpAffine(img, M_neg15, (w, h))
     
+    img_bright = cv.convertScaleAbs(img, alpha=1.0, beta=40)
+    img_bright1 = cv.convertScaleAbs(img, alpha=1.0, beta=60)
+    img_dark = cv.convertScaleAbs(img, alpha=1.0, beta=-40)
+    img_dark1 = cv.convertScaleAbs(img, alpha=1.0, beta=-60)
+
     return [
         ("orig", img),
         ("flip", img_flip),
         ("rot15", img_rotate_15),
-        ("rot_neg15", img_rotate_neg15)
+        ("rot_neg15", img_rotate_neg15),
+        ("bright", img_bright),
+        ("bright1", img_bright1),
+        ("dark", img_dark),
+        ("dark1", img_dark1)
     ]
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
