@@ -87,6 +87,8 @@ for label, folder in classes.items():
                 print(f"Skipping bad image: {img_path}")
                 continue
 
+            img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+
             img = cv.resize(img, IMG_SIZE)
 
             augmented_images = augment_image(img)
