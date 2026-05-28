@@ -364,14 +364,14 @@ function Dashboard() {
                                                     <td><small>{formatDate(entry.timestamp)}</small></td>
                                                     <td>
                                                         {entry.user
-                                                            ? <><strong>{entry.user.username}</strong><br /><small className="text-muted">{entry.user.firstName} {entry.user.lastName}</small></>
+                                                            ? <><strong>{entry.user.username}</strong><br /><small className="text-primary">{entry.user.firstName} {entry.user.lastName}</small></>
                                                             : <span className="text-muted">–</span>
                                                         }
                                                     </td>
                                                     <td>{entry.racket?.model || <span className="text-muted">–</span>}</td>
                                                     <td>
                                                         {entry.package
-                                                            ? <><span>{entry.package.name}</span><br /><small className="text-muted">{entry.package.location}</small></>
+                                                            ? <><span>{entry.package.name}</span><br /><small className="text-primary">{entry.package.location}</small></>
                                                             : <span className="text-muted">–</span>
                                                         }
                                                     </td>

@@ -180,11 +180,14 @@ function UserDashboard() {
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Hkrati imaš lahko izposojen le <strong>1 lopar</strong>.</ListGroup.Item>
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Lopar po zaključeni igri vrni.</ListGroup.Item>
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• V primeru poškodbe obvesti skrbnika.</ListGroup.Item>
+                                        <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Srečno igro!</ListGroup.Item>
                                     </ListGroup>
+                                    {/*
                                     <div className="mt-4 p-3 rounded text-center" style={{ background: "linear-gradient(135deg, #2c3e50, #0d6efd)" }}>
                                         <h5 className="fw-bold mb-1">Potrebuješ igrišče?</h5>
                                         <Link to="/reservations" className="btn btn-light btn-sm fw-bold w-100">📅 Rezervacija igrišča</Link>
                                     </div>
+                                */}
                                 </Card.Body>
                             </Card>
                         </Col>
@@ -216,6 +219,74 @@ function UserDashboard() {
                 )}
             </Container>
         )
+    }
+
+    if (userContext?.user?.role === 'rekreativec' && user?.rented) {
+        return (
+            <Container className="mt-5" style={{ maxWidth: "1000px" }}>
+                <div className="mb-4 text-start d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 className="fw-bold m-0">Moja izposoja</h1>
+                        <p className="text-muted m-0">Uporabnik: {user?.username || "Rekreativec"}</p>
+                    </div>
+                    <Badge bg="warning" className="p-2 fs-6">⚠️ Status: Lopar izposojen</Badge>
+                </div>
+
+                {message && <div className="alert alert-success">{message}</div>}
+                {error && <div className="alert alert-danger">{error}</div>}
+
+                <Row className="g-4 text-start">
+                    <Col xs={12} md={7}>
+                        <Card bg="dark" text="white" className="border-0 shadow-lg p-4 h-100 bg-gradient">
+                            <Card.Body className="d-flex flex-column justify-content-between">
+                                <div>
+                                    <div className="d-flex align-items-center mb-4">
+                                        <div className="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                                            <span style={{ fontSize: "2rem" }}>🎾</span>
+                                        </div>
+                                        <div>
+                                            <Card.Subtitle className="text-warning text-uppercase fw-bold mb-1" style={{ letterSpacing: "1px", fontSize: "0.85rem" }}>
+                                                Tvoja aktivna izposoja
+                                            </Card.Subtitle>
+                                            <Card.Title as="h3" className="fw-bold m-0 text-white">
+                                                {typeof user.rented === "object" ? user.rented.name : "Izposojeni lopar"}
+                                            </Card.Title>
+                                        </div>
+                                    </div>
+                                    <hr className="border-secondary my-3" />
+                                    <div className="bg-secondary bg-opacity-10 p-3 rounded mb-4">
+                                        <p className="mb-2"><strong>Tip opreme:</strong> Teniški lopar</p>
+                                        <p className="mb-2"><strong>Čas izposoje:</strong> Danes (Aktivno)</p>
+                                        <p className="mb-0 text-white-50">
+                                            <small>ID: </small>
+                                            <code className="text-warning bg-dark px-2 py-1 rounded">
+                                                {typeof user.rented === "object" ? user.rented._id : user.rented}
+                                            </code>
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button variant="danger" size="lg" className="w-100 fw-bold shadow mt-auto" onClick={handleReturnRacket}>
+                                    ↩ Vrni lopar v omarico
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col xs={12} md={5}>
+                        <Card bg="dark" text="white" className="border-0 shadow h-100 p-3">
+                            <Card.Body>
+                                <Card.Title className="fw-bold mb-3">📌 Pravila omarice</Card.Title>
+                                <ListGroup variant="flush" className="bg-transparent text-white">
+                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Hkrati imaš lahko izposojen le <strong>1 lopar</strong>.</ListGroup.Item>
+                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Lopar po zaključeni igri vrni.</ListGroup.Item>
+                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• V primeru poškodbe obvesti skrbnika.</ListGroup.Item>
+                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Srečno igro!</ListGroup.Item>
+                                </ListGroup>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        );
     }
 
     return (
