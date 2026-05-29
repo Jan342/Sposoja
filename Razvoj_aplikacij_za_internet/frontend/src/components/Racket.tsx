@@ -4,17 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { ServerRequest } from "../types/ServerRequest";
 import { useContext } from "react";
 import { UserContext } from "../contexts/userContext";
+import { usePopup } from "../contexts/popupContext";
 
 function Racket(props: any) {
     const navigate = useNavigate();
     const context = useContext(UserContext);
+    const getPopUp = usePopup();
     
     const user = context?.user as any;
     const isClub = user && (user.role === "klub" || user.isClubMember);
-        console.log("RACKET:", props.racket);
 
     const handleDelete = async () => {
-    if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
+    //if (window.confirm(`Ali res želiš izbrisati lopar ${props.racket.model}?`)) {
         try {
             const response = await fetch(`http://localhost:3001/rackets/${props.racket._id}`, {
                 method: 'DELETE',
@@ -22,22 +23,24 @@ function Racket(props: any) {
             });
 
             if (response.ok) {
-                alert("Lopar uspešno izbrisan!");
+                getPopUp.confirm({text: "Lopar uspešno izbrisan!",showCancel: false})
                 window.location.reload(); 
             } else {
-                alert("Napaka pri brisanju loparja.");
+                getPopUp.confirm({text: "Napaka pri brisanju loparja.",showCancel: false})
             }
         } catch (error) {
             console.error("Napaka:", error);
         }
-    }
+    //}
 };
     
     async function handleRent() {
-        if (props.racket.rented) {
-        alert("Ta lopar je že zaseden!");
-        return;
-    }
+        if (props.racket.rented) {            
+            //alert("Ta lopar je že zaseden!");
+            getPopUp.confirm({text: "Ta lopar je že zaseden!",showCancel: false})
+            return;
+        }
+        
         const res = new ServerRequest("rackets/rentRacket");
         const responseObj = await res.post({ racket: props.racket._id });
         const data = await responseObj.json();
@@ -49,9 +52,11 @@ function Racket(props: any) {
             if (props.onRentSuccess) {
                 props.onRentSuccess();
             }
-            alert("Lopar uspešno izposojen!");
+            //alert("Lopar uspešno izposojen!");
+            getPopUp.confirm({text: "Lopar uspešno izposojen!",showCancel: false})
         } else {
-            alert(data.error || data.message || "Prišlo je do napake pri izposoji.");
+            //alert(data.error || data.message || "Prišlo je do napake pri izposoji.");
+            getPopUp.confirm({text: data.error || data.message || "Prišlo je do napake pri izposoji.",showCancel: false})
         }
     }
 
@@ -80,7 +85,8 @@ function Racket(props: any) {
                         <Button
                             variant="danger"
                             size="sm"
-                            onClick={handleDelete}
+                            //onClick={handleDelete}
+                            onClick={() => getPopUp.confirm({text: `Ali res želiš izbrisati lopar ${props.racket.model}?`,showCancel: true,onConfirm: handleDelete})}
                         >
                             Izbriši
                         </Button>
@@ -89,7 +95,8 @@ function Racket(props: any) {
                     <Button
                         variant="primary"
                         size="sm"
-                        onClick={handleRent}
+                        //onClick={handleRent}
+                        onClick={() => getPopUp.confirm({text: "Ali želite izposoditi ta lopar?",showCancel: true,onConfirm: handleRent})}
                         disabled={props.racket.rented}
                     >
                         {props.racket.rented ? "Zasedeno" : "Izposoja"}

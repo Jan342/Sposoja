@@ -15,6 +15,7 @@ import type { AuthEntity } from './types/user'
 import ClubDetails from './components/ClubDetails'
 import EditRacket from "./components/EditRacket";
 import Home from './components/Home';
+import PopupProvider from './contexts/popupContext'
 
 function App() {
   const [user, setUser] = useState<AuthEntity | null>(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -30,20 +31,22 @@ function App() {
             user: user,
             setUserContext: updateUserData
           }}>
-            <div className="App">
-              <Header></Header>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/register" element={<GuestRoute><Register /></GuestRoute>}></Route>
-                <Route path="/login" element={<GuestRoute><Login /></GuestRoute>}></Route>
-                <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>}></Route>
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}></Route>
-                <Route path="/rent" element={<ProtectedRoute role="club"><RacketRent /></ProtectedRoute>}></Route>
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
-                <Route path="/clubs/:id" element={<ProtectedRoute><ClubDetails /></ProtectedRoute>}></Route>
-                <Route path="/racket/edit/:id" element={<EditRacket />} />
-              </Routes>
-            </div>
+            <PopupProvider>
+                <div className="App">
+                  <Header></Header>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/register" element={<GuestRoute><Register /></GuestRoute>}></Route>
+                    <Route path="/login" element={<GuestRoute><Login /></GuestRoute>}></Route>
+                    <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>}></Route>
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}></Route>
+                    <Route path="/rent" element={<ProtectedRoute role="club"><RacketRent /></ProtectedRoute>}></Route>
+                    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
+                    <Route path="/clubs/:id" element={<ProtectedRoute><ClubDetails /></ProtectedRoute>}></Route>
+                    <Route path="/racket/edit/:id" element={<EditRacket />} />
+                  </Routes>
+                </div>
+            </PopupProvider>
           </UserContext.Provider>
       </BrowserRouter>
     </>

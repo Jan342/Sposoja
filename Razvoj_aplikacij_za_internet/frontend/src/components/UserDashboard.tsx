@@ -9,10 +9,10 @@ import { ServerRequest } from "../types/ServerRequest";
 import { UserContext } from "../contexts/userContext";
 import ClubDetails from "./ClubDetails";
 import { Navigate, useNavigate } from "react-router-dom";
-import ConfirmPopUp from "./ConfirmDialog";
 import ListGroup from "react-bootstrap/ListGroup";
 import { Link } from "react-router-dom";
 import Badge from "react-bootstrap/Badge";
+import { usePopup } from "../contexts/popupContext";
 
 type ClubData = {
     _id: string;
@@ -39,10 +39,10 @@ function UserDashboard() {
     const [clubs, setClubs] = useState<ClubData[]>([]);
     const [rackets, setRackets] = useState<RacketData[]>([]);
     const [selectedClub, setSelectedClub] = useState<ClubData | null>(null);
-    const [showPopup, setShowPopup] = useState(false);
     const [reload, setReload] = useState(false);
     const [message, setMessage] = useState<string>("");
     const [error, setError] = useState<string>("");
+    const getPopup = usePopup();
     const nav = useNavigate();
 
     const [rekreativniRackets, setRekreativniRackets] = useState<RacketData[]>([]);
@@ -95,7 +95,7 @@ function UserDashboard() {
 
     const user = userContext.user as any;
     async function handleReturnRacket() {
-        if (!window.confirm("Ali res želiš vrniti ta lopar nazaj v omarico?")) return;
+        //if (!window.confirm("Ali res želiš vrniti ta lopar nazaj v omarico?")) return;
 
         setMessage("");
         setError("");
@@ -127,7 +127,7 @@ function UserDashboard() {
             <Container className="mt-5" style={{ maxWidth: "1000px" }}>
                 <div className="mb-4 text-start d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 className="fw-bold m-0">Loparji za isposojo</h1>
+                        <h1 className="fw-bold m-0">Loparji za izposojo</h1>
                         <p className="text-muted m-0">Uporabnik: {user?.username || "Igralec"}</p>
                     </div>
                     <Badge bg={user?.rented ? "warning" : "success"} className="p-2 fs-6">
@@ -166,7 +166,7 @@ function UserDashboard() {
                                             </p>
                                         </div>
                                     </div>
-                                    <Button variant="danger" size="lg" className="w-100 fw-bold shadow mt-auto" onClick={handleReturnRacket}>
+                                    <Button variant="danger" size="lg" className="w-100 fw-bold shadow mt-auto" onClick={() => getPopup.confirm({text: "Ali res želiš vrniti ta lopar nazaj v omarico?",showCancel: true, onConfirm: handleReturnRacket})}>
                                         ↩ Vrni lopar v omarico
                                     </Button>
                                 </Card.Body>
@@ -202,7 +202,7 @@ function UserDashboard() {
                         <Row>
                             {rackets.length > 0 ? rackets.map((racket: any) => (
                                 <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
-                                    <Racket racket={racket} onRentSuccess={refreshRackets} />
+                                    <Racket racket={racket} onRentSuccess={refreshRackets}/>
                                 </Col>
                             )) : <Col><p className="text-muted">Trenutno ni na voljo klubskih loparjev.</p></Col>}
                         </Row>
@@ -211,7 +211,7 @@ function UserDashboard() {
                         <Row>
                             {rekreativniRackets.length > 0 ? rekreativniRackets.map((racket: any) => (
                                 <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
-                                    <Racket racket={racket} onRentSuccess={refreshRackets} />
+                                    <Racket racket={racket} onRentSuccess={refreshRackets}/>
                                 </Col>
                             )) : <Col><p className="text-muted">Trenutno ni na voljo rekreativnih loparjev.</p></Col>}
                         </Row>
@@ -290,35 +290,26 @@ function UserDashboard() {
     }
 
     return (
-        <>
-            <Row>
-                {clubs.map((club) => (
-                    <Col key={club._id} xs={12} md={6} className="mb-4">
-                        <Card bg="dark" text="white" className="shadow-sm h-100">
-                            <Card.Img
-                                variant="top"
-                                src={"../../public/racket.jpg"}
-                                style={{ height: "220px", objectFit: "cover" }}
-                            />
-                            <Card.Body>
-                                <Card.Title>{club.clubName}</Card.Title>
-                                <div className="d-flex gap-3">
-                                    <Button onClick={() => nav(`/clubs/${club._id}`)}>Podrobnosti</Button>
-                                    <Button onClick={() => setSelectedClub(club)}>Včlani se</Button>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-
-            <ConfirmPopUp
-                show={selectedClub !== null}
-                text="Ali se želite včlaniti?"
-                onClose={() => setShowPopup(false)}
-                onConfirm={() => joinClub(selectedClub as ClubData)}
-            />
-        </>
+        <Row>
+            {clubs.map((club) => (
+                <Col key={club._id} xs={12} md={6} className="mb-4">
+                    <Card bg="dark" text="white" className="shadow-sm h-100">
+                        <Card.Img
+                            variant="top"
+                            src={"../../public/racket.jpg"}
+                            style={{ height: "220px", objectFit: "cover" }}
+                        />
+                        <Card.Body>
+                            <Card.Title>{club.clubName}</Card.Title>
+                            <div className="d-flex gap-3">
+                                <Button onClick={() => nav(`/clubs/${club._id}`)}>Podrobnosti</Button>
+                                <Button onClick={() => getPopup.confirm({text: "Ali se želite včlaniti?",showCancel: true, onConfirm: () => joinClub(club)})}>Včlani se</Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            ))}
+        </Row>
     );
 }
 

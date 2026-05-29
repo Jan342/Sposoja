@@ -1,6 +1,6 @@
 import { Modal, Button } from "react-bootstrap";
 
-function ConfirmPopUp({ show, onClose, onConfirm, text }) {
+function ConfirmPopUp({ show, onClose, onConfirm, text, showCancel = true }) {
     return (
         <Modal show={show} onHide={onClose} centered>
             <Modal.Header closeButton>
@@ -12,9 +12,11 @@ function ConfirmPopUp({ show, onClose, onConfirm, text }) {
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={onClose}>
-                    Cancel
-                </Button>
+                {showCancel && (
+                    <Button variant="secondary" onClick={onClose}>
+                        Cancel
+                    </Button>
+                )}
 
                 <Button variant="primary" onClick={onConfirm}>
                     OK
