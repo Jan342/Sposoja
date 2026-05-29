@@ -13,42 +13,7 @@ import { ServerRequest } from "../types/ServerRequest";
 import { UserContext } from "../contexts/userContext";
 import UserDashboard from "./UserDashboard";
 import Racket from "./Racket";
-
-type Package = {
-    _id: string;
-    name: string;
-    location: string;
-    racketLimit: number;
-    racketTotal: number;
-};
-
-type RacketData = {
-    _id: string;
-    model: string;
-    description?: string;
-    rated?: number;
-    path?: string;
-    rented?: boolean;
-    owner?: string;
-};
-
-type Member = {
-    _id: string;
-    username: string;
-    firstName?: string;
-    lastName?: string;
-    role: string;
-    assignedPackage?: { _id: string; name: string; location: string } | null;
-};
-
-type LogEntry = {
-    _id: string;
-    user?: { _id: string; username: string; firstName?: string; lastName?: string } | null;
-    racket?: { _id: string; model: string } | null;
-    package?: { _id: string; name: string; location: string } | null;
-    action: 'izposoja' | 'vrnitev';
-    timestamp: string;
-};
+import type { LogEntry, Member, Package, RacketData } from "../types/other_types";
 
 function Dashboard() {
     const userContext = useContext(UserContext);
@@ -397,7 +362,7 @@ function Dashboard() {
 
     return (
         <Container className="py-4">
-            <UserDashboard />
+            <UserDashboard onRentSuccess={refreshRackets}/>
 
             {userContext.user?.role === 'rekreativec' && (
                 <>

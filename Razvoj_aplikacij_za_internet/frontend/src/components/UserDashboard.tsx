@@ -13,28 +13,9 @@ import ListGroup from "react-bootstrap/ListGroup";
 import { Link } from "react-router-dom";
 import Badge from "react-bootstrap/Badge";
 import { usePopup } from "../contexts/popupContext";
+import type { ClubData, RacketData } from "../types/other_types";
 
-type ClubData = {
-    _id: string;
-    firstname: string;
-    lastname: string;
-    username: string;
-    clubName: string;
-    address: string;
-    packageCount: Number;
-}
-
-type RacketData = {
-    _id: string;
-    model: string;
-    description?: string;
-    rated?: number;
-    path?: string;
-    rented?: boolean;
-    owner?: string;
-};
-
-function UserDashboard() {
+function UserDashboard(props) {
     const userContext = useContext(UserContext);
     const [clubs, setClubs] = useState<ClubData[]>([]);
     const [rackets, setRackets] = useState<RacketData[]>([]);
@@ -113,6 +94,7 @@ function UserDashboard() {
                 if (contextAsAny?.setUserContext) contextAsAny.setUserContext(data);
                 else if (contextAsAny?.setUser) contextAsAny.setUser(data);
                 refreshRackets();
+                props.onRentSuccess?.();
             } else {
                 setError(data.error || "Vračanje loparja ni uspelo.");
             }

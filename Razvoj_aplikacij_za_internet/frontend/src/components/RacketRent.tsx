@@ -7,14 +7,7 @@ import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import { ServerRequest } from "../types/ServerRequest";
-
-type Package = {
-    _id: string;
-    name: string;
-    location: string;
-    racketLimit: number;
-    racketTotal: number;
-};
+import type { Package } from "../types/other_types";
 
 function RacketRent(){
     const [packages, setPackages] = useState<Package[]>([]);
