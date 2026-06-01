@@ -174,6 +174,47 @@ module.exports = {
         });
     },
 
+    leaveClub: function (req, res) {
+        if (!req.session || !req.session.userId || req.session.userType === 'club') {
+            return res.status(401).json({ error: "Only users can leave a club" });
+        }
+
+        UserModel.findById(req.session.userId).exec(function (err, user) {
+            if (err) {
+                return res.status(500).json({ error: "Error fetching user" });
+            }
+
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            if (user.role !== 'clan' || !user.joinedClub) {
+                return res.status(400).json({ error: "User is not a club member" });
+            }
+
+            user.role = 'rekreativec';
+            user.joinedClub = undefined;
+            user.assignedPackage = undefined;
+
+            user.save(function (err, savedUser) {
+                if (err) {
+                    return res.status(500).json({ error: "Could not leave club" });
+                }
+
+                return res.status(200).json({
+                    _id: savedUser._id,
+                    username: savedUser.username,
+                    firstName: savedUser.firstName,
+                    lastName: savedUser.lastName,
+                    role: savedUser.role,
+                    rented: savedUser.rented,
+                    profileImage: savedUser.profileImage,
+                    accountType: 'person'
+                });
+            });
+        });
+    },
+
     getclubRackets: function (req, res) {
 
         UserModel.findById(req.session.userId).exec(function (err, user) {
@@ -253,6 +294,28 @@ module.exports = {
                     if (err) return res.status(500).json({ error: "Napaka pri dodeljevanju paketnika" });
                     return res.status(200).json({ message: "Paketnik uspešno dodeljen", user: saved });
                 });
+            });
+        });
+    },
+
+    removeMember: function (req, res) {
+        if (!req.session || req.session.userType !== 'club') {
+            return res.status(401).json({ error: "Samo klubi lahko odstranijo clane" });
+        }
+
+        const { userId } = req.params;
+
+        UserModel.findOne({ _id: userId, joinedClub: req.session.userId }).exec(function (err, user) {
+            if (err) return res.status(500).json({ error: "Napaka pri iskanju clana" });
+            if (!user) return res.status(404).json({ error: "Clan ni najden ali ne pripada temu klubu" });
+
+            user.role = 'rekreativec';
+            user.joinedClub = undefined;
+            user.assignedPackage = undefined;
+
+            user.save(function (err) {
+                if (err) return res.status(500).json({ error: "Napaka pri odstranjevanju clana" });
+                return res.status(200).json({ message: "Clan odstranjen iz kluba" });
             });
         });
     },

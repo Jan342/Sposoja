@@ -18,9 +18,11 @@ function requiresLogin(req, res, next) {
 router.get('/clubRackets', requiresLogin, clubController.getclubRackets);
 router.get('/', requiresLogin, clubController.list);
 router.post('/joinClub', requiresLogin, clubController.joinClub);
+router.post('/leaveClub', requiresLogin, clubController.leaveClub);
 
 router.get('/members', requiresLogin, clubController.getMembers);
 router.post('/members/:userId/package', requiresLogin, clubController.assignPackage);
+router.delete('/members/:userId', requiresLogin, clubController.removeMember);
 
 router.get('/history', requiresLogin, clubController.getHistory);
 

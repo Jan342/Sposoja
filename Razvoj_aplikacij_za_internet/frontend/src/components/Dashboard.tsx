@@ -76,8 +76,8 @@ function Dashboard() {
         loadPackageRackets();
     }, [selectedPackage, reload]);
 
-    async function loadMembers() {
-        if (membersLoaded) return;
+    async function loadMembers(force = false) {
+        if (!force && membersLoaded) return;
         const res = await fetch("http://localhost:3001/clubs/members", { credentials: "include" });
         const data = await res.json();
         setMembers(data);
@@ -107,7 +107,7 @@ function Dashboard() {
             setAssignMsg("Paketnik uspešno dodeljen!");
             setAssigningFor(null);
             setMembersLoaded(false);
-            loadMembers();
+            loadMembers(true);
         } else {
             setAssignMsg(data.error || "Napaka pri dodeljevanju.");
         }
@@ -124,7 +124,28 @@ function Dashboard() {
         if (res.ok) {
             setAssignMsg("Dodelitev paketnika odstranjena.");
             setMembersLoaded(false);
-            loadMembers();
+            loadMembers(true);
+        }
+    }
+
+    async function removeMember(userId: string) {
+        if (!window.confirm("Ali res zelis odstraniti clana iz kluba?")) {
+            return;
+        }
+
+        setAssignMsg("");
+        const res = await fetch(`http://localhost:3001/clubs/members/${userId}`, {
+            method: "DELETE",
+            credentials: "include"
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            setAssignMsg("Clan odstranjen iz kluba.");
+            setMembersLoaded(false);
+            loadMembers(true);
+        } else {
+            setAssignMsg(data.error || "Napaka pri odstranjevanju clana.");
         }
     }
 
@@ -270,6 +291,9 @@ function Dashboard() {
                                                                         Odstrani
                                                                     </Button>
                                                                 )}
+                                                                <Button size="sm" variant="danger" onClick={() => removeMember(member._id)}>
+                                                                    Vrzi ven
+                                                                </Button>
                                                             </div>
                                                         )}
                                                     </td>

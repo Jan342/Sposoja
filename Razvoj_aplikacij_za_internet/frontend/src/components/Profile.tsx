@@ -167,6 +167,31 @@ function Profile() {
         }
     }
 
+    async function leaveClub() {
+        if (!window.confirm("Ali res zelis izstopiti iz kluba?")) {
+            return;
+        }
+
+        setMessage("");
+        setError("");
+
+        const res = await fetch("http://localhost:3001/clubs/leaveClub", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            setMessage("Izstopil si iz kluba.");
+            if (context && context.setUserContext) {
+                context.setUserContext(data);
+            }
+        } else {
+            setError(data.error || "Izstop iz kluba ni uspel.");
+        }
+    }
+
     const userInitial = user && user.username 
         ? user.username.charAt(0).toUpperCase() 
         : "U";
@@ -251,6 +276,17 @@ function Profile() {
                                 ID izposojenega loparja: <code className="text-black">{user.rented}</code><br />
                                 <small className="text-muted">Obisci omarico za prevzem.</small>
                             </Alert>
+                        )}
+
+                        {user.accountType !== "club" && user.role === "clan" && (
+                            <Button
+                                type="button"
+                                variant="outline-danger"
+                                className="mt-3"
+                                onClick={leaveClub}
+                            >
+                                Izstopi iz kluba
+                            </Button>
                         )}
 
 
