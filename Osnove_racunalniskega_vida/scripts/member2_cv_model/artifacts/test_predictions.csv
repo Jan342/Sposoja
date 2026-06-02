@@ -1,0 +1,9 @@
+image_path,true_label,predicted_label,confidence
+C:\Users\dejko\Desktop\loparji\train\lopar\IMG_2566.jpg,lopar,lopar,1.0000
+C:\Users\dejko\Desktop\loparji\train\lopar\IMG_6.jpg,lopar,lopar,1.0000
+C:\Users\dejko\Desktop\loparji\train\lopar\lopar.jpg,lopar,lopar,1.0000
+C:\Users\dejko\Desktop\loparji\train\lopar\lopar3.jpg,lopar,lopar,1.0000
+C:\Users\dejko\Desktop\loparji\train\lopar\lopar4.jpg,lopar,lopar,1.0000
+C:\Users\dejko\Desktop\loparji\train\no_loparji\IMG_2583.jpg,no_loparji,no_loparji,1.0000
+C:\Users\dejko\Desktop\loparji\train\no_loparji\IMG_2586.jpg,no_loparji,no_loparji,1.0000
+C:\Users\dejko\Desktop\loparji\train\no_loparji\watch.jpg,no_loparji,no_loparji,1.0000
