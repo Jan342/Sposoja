@@ -105,8 +105,13 @@ for label, folder in classes.items():
             augmented_images = augment_image(img)
 
             for prefix, aug_img in augmented_images:
-                new_filename = f"{prefix}_{file}"
+                name_without_ext = os.path.splitext(file)[0]
+                new_filename = f"{prefix}_{name_without_ext}.jpg"
+                
                 save_path = os.path.join(save_dir, new_filename)
-                cv.imwrite(save_path, aug_img)
+                
+                success = cv.imwrite(save_path, aug_img)
+                if not success:
+                    print(f"Napaka pri shranjevanju: {save_path}")
 
 print("dataset ready")
