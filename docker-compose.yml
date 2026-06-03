@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  android-builder:
+    build: ./Programski_jeziki
+    volumes:
+      - ./Programski_jeziki/app/build/outputs:/app/app/build/outputs
