@@ -3,3 +3,6 @@ albumentations
 numpy
 tqdm
 scipy
+fastapi
+uvicorn
+python-multipart
