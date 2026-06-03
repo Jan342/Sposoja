@@ -121,6 +121,109 @@ def extract_edge_features(gray):
     return np.array([np.mean(edges > 0)], dtype=np.float32)
 
 
+def extract_hough_features(gray):
+    edges = cv.Canny(gray, 70, 170)
+    h, w = gray.shape
+    diagonal = float(np.hypot(h, w))
+
+    lines = cv.HoughLinesP(
+        edges,
+        rho=1,
+        theta=np.pi / 180,
+        threshold=35,
+        minLineLength=max(12, min(h, w) // 5),
+        maxLineGap=max(4, min(h, w) // 16),
+    )
+
+    line_count = 0
+    mean_length = 0.0
+    max_length = 0.0
+    angle_hist = np.zeros(6, dtype=np.float32)
+    if lines is not None:
+        lengths = []
+        for line in lines[:80]:
+            x1, y1, x2, y2 = line[0]
+            dx = float(x2 - x1)
+            dy = float(y2 - y1)
+            length = float(np.hypot(dx, dy))
+            lengths.append(length)
+            angle = abs(np.degrees(np.arctan2(dy, dx))) % 180.0
+            bin_id = min(int(angle / 30.0), 5)
+            angle_hist[bin_id] += 1.0
+
+        line_count = len(lengths)
+        mean_length = float(np.mean(lengths) / diagonal) if lengths else 0.0
+        max_length = float(np.max(lengths) / diagonal) if lengths else 0.0
+        if angle_hist.sum() > 0:
+            angle_hist /= angle_hist.sum()
+
+    circles = cv.HoughCircles(
+        gray,
+        cv.HOUGH_GRADIENT,
+        dp=1.2,
+        minDist=max(12, min(h, w) // 6),
+        param1=90,
+        param2=22,
+        minRadius=max(4, min(h, w) // 18),
+        maxRadius=max(8, min(h, w) // 2),
+    )
+
+    circle_count = 0
+    mean_radius = 0.0
+    if circles is not None:
+        circles = np.round(circles[0, :20]).astype(np.float32)
+        circle_count = len(circles)
+        mean_radius = float(np.mean(circles[:, 2]) / max(h, w))
+
+    base = np.array(
+        [
+            min(line_count / 80.0, 1.0),
+            mean_length,
+            max_length,
+            min(circle_count / 20.0, 1.0),
+            mean_radius,
+        ],
+        dtype=np.float32,
+    )
+    return np.concatenate([base, angle_hist]).astype(np.float32)
+
+
+def extract_shape_features(gray):
+    edges = cv.Canny(gray, 70, 170)
+    contours, _ = cv.findContours(edges, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    h, w = gray.shape
+    image_area = float(h * w)
+
+    if not contours:
+        return np.zeros(8, dtype=np.float32)
+
+    largest = max(contours, key=cv.contourArea)
+    area = float(cv.contourArea(largest))
+    perimeter = float(cv.arcLength(largest, True))
+    x, y, box_w, box_h = cv.boundingRect(largest)
+    aspect = float(box_w / box_h) if box_h else 0.0
+    rect_area = float(box_w * box_h)
+    extent = float(area / rect_area) if rect_area else 0.0
+    circularity = float((4.0 * np.pi * area) / (perimeter * perimeter)) if perimeter else 0.0
+
+    contour_areas = [cv.contourArea(contour) for contour in contours]
+    large_contours = sum(1 for item in contour_areas if item > image_area * 0.01)
+
+    return np.array(
+        [
+            min(len(contours) / 120.0, 1.0),
+            min(large_contours / 20.0, 1.0),
+            area / image_area,
+            perimeter / float(2 * (h + w)),
+            min(aspect / 6.0, 1.0),
+            extent,
+            circularity,
+            rect_area / image_area,
+        ],
+        dtype=np.float32,
+    )
+
+
 def extract_features(path, params):
     img = read_image(path)
     size = int(params["image_size"])
@@ -129,12 +232,17 @@ def extract_features(path, params):
     gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
     gray = cv.equalizeHist(gray)
 
+    feature_set = params.get("feature_set", "baseline")
     parts = [
         extract_hsv_histogram(img, int(params["hist_bins"])),
         extract_edge_features(gray),
     ]
     if params["use_hog"]:
         parts.append(extract_hog_features(gray, int(params["hog_cell_size"])))
+    if feature_set in {"hough", "combined"}:
+        parts.append(extract_hough_features(gray))
+    if feature_set in {"shape", "combined"}:
+        parts.append(extract_shape_features(gray))
 
     feature = np.concatenate(parts).astype(np.float32)
     norm = np.linalg.norm(feature)
@@ -200,13 +308,27 @@ def classification_metrics(y_true, y_pred, labels):
     }
 
 
-def parameter_grid():
-    for image_size in (96, 128):
-        for hist_bins in (8, 12):
-            for hog_cell_size in (16, 32):
-                for use_hog in (True, False):
-                    for k in (1, 3, 5):
+def parameter_grid(feature_set):
+    if feature_set == "baseline":
+        image_sizes = (96, 128)
+        hist_bins_values = (8, 12)
+        hog_cell_sizes = (16, 32)
+        use_hog_values = (True, False)
+        k_values = (1, 3, 5)
+    else:
+        image_sizes = (128,)
+        hist_bins_values = (8, 12)
+        hog_cell_sizes = (16,)
+        use_hog_values = (True,)
+        k_values = (1, 3)
+
+    for image_size in image_sizes:
+        for hist_bins in hist_bins_values:
+            for hog_cell_size in hog_cell_sizes:
+                for use_hog in use_hog_values:
+                    for k in k_values:
                         yield {
+                            "feature_set": feature_set,
                             "image_size": image_size,
                             "hist_bins": hist_bins,
                             "hog_cell_size": hog_cell_size,
@@ -215,11 +337,11 @@ def parameter_grid():
                         }
 
 
-def pick_best_model(train_samples, val_samples, labels, label_to_id):
+def pick_best_model(train_samples, val_samples, labels, label_to_id, feature_set):
     best = None
     history = []
 
-    for params in parameter_grid():
+    for params in parameter_grid(feature_set):
         train_x, train_y, _ = build_matrix(train_samples, label_to_id, params)
         val_x, val_y, _ = build_matrix(val_samples, label_to_id, params)
         k = min(int(params["k"]), len(train_y))
@@ -239,6 +361,34 @@ def pick_best_model(train_samples, val_samples, labels, label_to_id):
     return best, history
 
 
+def train_final_model(train_samples, val_samples, test_samples, labels, label_to_id, feature_set):
+    best, history = pick_best_model(train_samples, val_samples, labels, label_to_id, feature_set)
+    params = best["params"]
+
+    combined_train = train_samples + val_samples
+    train_x, train_y, train_paths = build_matrix(combined_train, label_to_id, params)
+    test_x, test_y, test_paths = build_matrix(test_samples, label_to_id, params)
+    k = min(int(params["k"]), len(train_y))
+    test_pred, confidences = knn_predict(train_x, train_y, test_x, k)
+    test_metrics = classification_metrics(test_y, test_pred, labels)
+
+    return {
+        "feature_set": feature_set,
+        "params": params,
+        "train_x": train_x,
+        "train_y": train_y,
+        "train_paths": train_paths,
+        "test_y": test_y,
+        "test_pred": test_pred,
+        "test_paths": test_paths,
+        "confidences": confidences,
+        "validation_metrics": best["validation_metrics"],
+        "test_metrics": test_metrics,
+        "history": history,
+        "score": (test_metrics["macro_f1"], test_metrics["accuracy"]),
+    }
+
+
 def save_predictions_csv(path, image_paths, y_true, y_pred, confidences, labels):
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
@@ -251,55 +401,104 @@ def main():
     parser = argparse.ArgumentParser(description="Train and evaluate the member 2 computer vision model.")
     parser.add_argument("--dataset", default="dataset", help="Dataset root with train/val/test class folders.")
     parser.add_argument("--out", default="member2_cv_model/artifacts", help="Output directory for model and metrics.")
+    parser.add_argument(
+        "--models",
+        default="baseline,hough,shape,combined",
+        help="Comma-separated feature sets: baseline,hough,shape,combined.",
+    )
     args = parser.parse_args()
 
     train_samples, val_samples, test_samples, labels, label_to_id = load_dataset(Path(args.dataset))
     output_dir = Path(args.out)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    best, history = pick_best_model(train_samples, val_samples, labels, label_to_id)
-    params = best["params"]
+    requested_models = [item.strip() for item in args.models.split(",") if item.strip()]
+    allowed_models = {"baseline", "hough", "shape", "combined"}
+    unknown_models = sorted(set(requested_models) - allowed_models)
+    if unknown_models:
+        raise SystemExit(f"Unknown model feature sets: {', '.join(unknown_models)}")
 
-    combined_train = train_samples + val_samples
-    train_x, train_y, train_paths = build_matrix(combined_train, label_to_id, params)
-    test_x, test_y, test_paths = build_matrix(test_samples, label_to_id, params)
-    k = min(int(params["k"]), len(train_y))
-    test_pred, confidences = knn_predict(train_x, train_y, test_x, k)
-    test_metrics = classification_metrics(test_y, test_pred, labels)
+    model_results = []
+    for feature_set in requested_models:
+        result = train_final_model(train_samples, val_samples, test_samples, labels, label_to_id, feature_set)
+        model_results.append(result)
+        np.savez_compressed(
+            output_dir / f"member2_model_{feature_set}.npz",
+            train_x=result["train_x"],
+            train_y=result["train_y"],
+            labels=np.array(labels),
+            params=json.dumps(result["params"]),
+            train_paths=np.array(result["train_paths"]),
+        )
+        save_predictions_csv(
+            output_dir / f"test_predictions_{feature_set}.csv",
+            result["test_paths"],
+            result["test_y"],
+            result["test_pred"],
+            result["confidences"],
+            labels,
+        )
 
+    best_result = max(model_results, key=lambda item: item["score"])
     np.savez_compressed(
         output_dir / "member2_model.npz",
-        train_x=train_x,
-        train_y=train_y,
+        train_x=best_result["train_x"],
+        train_y=best_result["train_y"],
         labels=np.array(labels),
-        params=json.dumps(params),
-        train_paths=np.array(train_paths),
+        params=json.dumps(best_result["params"]),
+        train_paths=np.array(best_result["train_paths"]),
     )
 
     results = {
-        "model": "Classical CV feature extractor + kNN classifier",
+        "model": "Classical CV feature extractors + kNN classifier",
         "labels": labels,
-        "best_params": params,
+        "best_model": best_result["feature_set"],
+        "best_params": best_result["params"],
         "dataset_sizes": {
             "train": len(train_samples),
             "validation": len(val_samples),
             "test": len(test_samples),
-            "final_train": len(combined_train),
+            "final_train": len(train_samples + val_samples),
         },
-        "validation_metrics": best["validation_metrics"],
-        "test_metrics": test_metrics,
-        "hyperparameter_search": history,
+        "validation_metrics": best_result["validation_metrics"],
+        "test_metrics": best_result["test_metrics"],
+        "models": {
+            item["feature_set"]: {
+                "best_params": item["params"],
+                "validation_metrics": item["validation_metrics"],
+                "test_metrics": item["test_metrics"],
+                "hyperparameter_search": item["history"],
+                "artifact": f"member2_model_{item['feature_set']}.npz",
+                "predictions": f"test_predictions_{item['feature_set']}.csv",
+            }
+            for item in model_results
+        },
     }
 
     with (output_dir / "metrics.json").open("w", encoding="utf-8") as handle:
         json.dump(results, handle, indent=2)
 
-    save_predictions_csv(output_dir / "test_predictions.csv", test_paths, test_y, test_pred, confidences, labels)
+    save_predictions_csv(
+        output_dir / "test_predictions.csv",
+        best_result["test_paths"],
+        best_result["test_y"],
+        best_result["test_pred"],
+        best_result["confidences"],
+        labels,
+    )
 
     print("Member 2 model training complete.")
-    print(f"Best parameters: {params}")
-    print(f"Test accuracy: {test_metrics['accuracy']:.4f}")
-    print(f"Test macro F1: {test_metrics['macro_f1']:.4f}")
+    for item in model_results:
+        print(
+            f"{item['feature_set']}: "
+            f"accuracy={item['test_metrics']['accuracy']:.4f}, "
+            f"macro_f1={item['test_metrics']['macro_f1']:.4f}, "
+            f"params={item['params']}"
+        )
+    print(f"Best model: {best_result['feature_set']}")
+    print(f"Best parameters: {best_result['params']}")
+    print(f"Test accuracy: {best_result['test_metrics']['accuracy']:.4f}")
+    print(f"Test macro F1: {best_result['test_metrics']['macro_f1']:.4f}")
     print(f"Saved model to: {output_dir / 'member2_model.npz'}")
 
 
