@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var mongoose = require('mongoose');
-var mongoDB = "mongodb://127.0.0.1/LoparGo";
+var mongoDB = process.env.MONGO_URL || "mongodb://127.0.0.1/LoparGo";
 mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;

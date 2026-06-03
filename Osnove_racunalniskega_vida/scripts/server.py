@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 import uvicorn
-from member2_predict_model import classifyImage
+from scripts.member2_predict_model import classifyImage
 import numpy as np
 import cv2 as cv
 
