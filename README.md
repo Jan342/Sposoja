@@ -72,26 +72,26 @@ npm start
 ```
 
 
-# Namestitev sistema za osnove računalniškega vida
-## Zahteve
+## Namestitev sistema za osnove računalniškega vida
+### Zahteve
 Za delovanje sistema potrebujete program miniconda na povezavi: https://www.anaconda.com/download/success
  - Conda okolje
 
-# Namestitev okolja
+### Namestitev okolja
 Okolje namestimo z ukazom v terminalu:
 
 ```bash
 conda install --file environment.yml
 ```
 
-# Aktiviramo z
+### Aktiviramo z
 Za vstop v to okolje
 
 ```bash
 conda activate LoparGO
 ```
 
-# Za vzpostavitev serverja
+### Za vzpostavitev serverja
 Teče server z ukazom:
 
 ```bash
@@ -103,8 +103,8 @@ Po zagonu dobimo informacijo o 'uspešnosti'
 
 Na linku http://localhost:3002 preverimo delovanje.
 
-# Uporaba mobilne aplikacije
-Za delovanje mobilne aplikacije potrebujemk
+### Uporaba mobilne aplikacije
+Za delovanje mobilne aplikacije potrebujemo
 - android studio
 - emulator ali fizični android telefon, ki ga povežemo na računalnik z USB kablom. 
 
