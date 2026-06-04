@@ -1,0 +1,58 @@
+name: Clan 1 - priprava podatkov
+
+on:
+  push:
+    paths:
+      - "Osnove_racunalniskega_vida/scripts/process_data.py"
+      - "Osnove_racunalniskega_vida/data_raw/**"
+      - ".github/workflows/clan1-podatki.yml"
+  pull_request:
+    paths:
+      - "Osnove_racunalniskega_vida/scripts/process_data.py"
+      - "Osnove_racunalniskega_vida/data_raw/**"
+      - ".github/workflows/clan1-podatki.yml"
+
+jobs:
+  test-priprave-podatkov:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Osnove_racunalniskega_vida
+
+    steps:
+      - name: Prenesi kodo
+        uses: actions/checkout@v4
+
+      - name: Nastavi Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Namesti odvisnosti
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy opencv-python-headless
+
+      - name: Preveri sintakso
+
+        run: python -m py_compile scripts/process_data.py
+
+      - name: Pozeni pripravo podatkov
+        run: python scripts/process_data.py
+
+      - name: Preveri ustvarjene slike
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import cv2 as cv
+
+          images = list(Path("dataset").rglob("*.jpg"))
+          assert images, "Skripta ni ustvarila nobene obdelane slike."
+
+          image = cv.imread(str(images[0]))
+          assert image is not None, "Ustvarjene slike ni mogoce prebrati."
+          assert image.shape[:2] == (224, 224), f"Napacna velikost: {image.shape[:2]}"
+
+          print(f"Ustvarjenih slik: {len(images)}")
+          print(f"Preverjena slika: {images[0]}")
+          PY
