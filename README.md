@@ -18,9 +18,11 @@ Dejan – logika izposoje (vmesni del sistema)
 
 
 # Namestitev
+## Zahteve
+
 Za delovanje celotnega projekta potrebujete:
 - Mongodb
-- Docker (opcijsko priporočljivo)
+- Docker (opcijsko, vendar priporočljivo)
 
 Projekt je mogoče namestiti na dva načina:
 
@@ -36,7 +38,7 @@ docker compose up --build
 ```
 Ukaz najprej zgradi vse potrebne Docker slike, nato pa samodejno zažene vse komponente projekta. Po uspešnem zagonu je aplikacija pripravljena za uporabo.
 
-Ko se vse skupaj zaženejo, so tudi različni servisi na različnih portih.
+Po zagonu bodo posamezni servisi dostopni na naslednjih vratih:
 
 - MongoDb (27017)
 - Backend (3001)
@@ -48,16 +50,16 @@ Ko se vse skupaj zaženejo, so tudi različni servisi na različnih portih.
 Alternativno lahko posamezne komponente projekta zaženete ročno.
 
 ## Razvoj aplikacij za internet
-Najprej se premaknite v mapo **frontend** in namestite odvisnosti z ukazom:
+Najprej se premaknite v mapo ```frontend``` in namestite odvisnosti z ukazom:
 
 ```bash
 npm install
 ```
-Ukaz ustvari mapo node_modules, ki vsebuje vse potrebne knjižnice za delovanje aplikacije.
+Ukaz ustvari mapo ```node_modules```, ki vsebuje vse potrebne knjižnice za delovanje aplikacije.
 
-Isto naredite za mapo **backend**
+Isto naredite za mapo ```backend```
 
-Zagon te aplikacije v obeh mapah **frontend** in **backend**
+Zagon te aplikacije je potrebno zagnati ločeno v mapi ```frontend``` in ločeno v mapi ```backend```
 
 ### Razvojni način
 ```bash
