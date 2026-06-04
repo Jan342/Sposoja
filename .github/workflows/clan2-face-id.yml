@@ -1,0 +1,63 @@
+name: Clan 2 - Face ID model
+
+on:
+  push:
+    paths:
+      - "Osnove_racunalniskega_vida/scripts/face_id.py"
+      - "Osnove_racunalniskega_vida/data_raw/FaceDetection/**"
+      - ".github/workflows/clan2-face-id.yml"
+  pull_request:
+    paths:
+      - "Osnove_racunalniskega_vida/scripts/face_id.py"
+      - "Osnove_racunalniskega_vida/data_raw/FaceDetection/**"
+      - ".github/workflows/clan2-face-id.yml"
+
+jobs:
+  test-face-id:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Osnove_racunalniskega_vida
+
+    steps:
+      - name: Prenesi kodo
+        uses: actions/checkout@v4
+
+      - name: Nastavi Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Namesti odvisnosti
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy opencv-python-headless
+
+      - name: Preveri sintakso
+        run: python -m py_compile scripts/face_id.py
+
+      - name: Izdelaj in preveri Face ID model
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from face_id import enroll, load_model, verify_image
+
+          model_path = Path("/tmp/face_id_ci_model.npz")
+          enroll("data_raw/FaceDetection", model_path, "ci_uporabnik")
+
+          model = load_model(model_path)
+          assert len(model["templates"]) >= 3
+          assert 0 < model["threshold"]
+
+          test_image = sorted(Path("data_raw/FaceDetection").glob("*.jpg"))[0]
+          result = verify_image(test_image, model_path)
+          assert "verified" in result
+          assert "threshold" in result
+
+          print(f"Model vsebuje {len(model['templates'])} obraznih predlog.")
+          print(f"Preverjena slika: {test_image}")
+          print(f"Rezultat: {result}")
+          PY
