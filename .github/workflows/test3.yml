@@ -73,10 +73,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Zgradi oziroma objavi Docker sliko
+      - name: Zgradi oziroma objavi Docker sliko za Osnove_racunalniskega_vida
         uses: docker/build-push-action@v6
         with:
           context: Osnove_racunalniskega_vida
           file: Osnove_racunalniskega_vida/Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/sposoja-orv:latest
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:latest
+
+      - name: Zgradi oziroma objavi Docker sliko za Razvoj aplikacij za internet part 1
+        uses: docker/build-push-action@v6
+        with:
+          context: Razvoj_aplikacij_za_internet
+          file: Razvoj_aplikacij_za_internet/frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:latest
+
+      - name: Zgradi oziroma objavi Docker sliko za Razvoj aplikacij za internet part 2
+        uses: docker/build-push-action@v6
+        with:
+          context: Razvoj_aplikacij_za_internet
+          file: Razvoj_aplikacij_za_internet/backend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:latest
