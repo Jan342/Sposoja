@@ -72,7 +72,42 @@ npm start
 ```
 
 
+# Namestitev sistema za osnove računalniškega vida
+## Zahteve
+Za delovanje sistema potrebujete program miniconda na povezavi: https://www.anaconda.com/download/success
+ - Conda okolje
 
+# Namestitev okolja
+Okolje namestimo z ukazom v terminalu:
 
+```bash
+conda install --file environment.yml
+```
 
+# Aktiviramo z
+Za vstop v to okolje
 
+```bash
+conda activate LoparGO
+```
+
+# Za vzpostavitev serverja
+Teče server z ukazom:
+
+```bash
+uvicorn server:app --reload --host 0.0.0.0 --port 3002
+```
+
+Po zagonu dobimo informacijo o 'uspešnosti'
+- INFO:     Uvicorn running on http://0.0.0.0:3002 (Press CTRL+C to quit)
+
+Na linku http://localhost:3002 preverimo delovanje.
+
+# Uporaba mobilne aplikacije
+Za delovanje mobilne aplikacije potrebujemk
+- android studio
+- emulator ali fizični android telefon, ki ga povežemo na računalnik z USB kablom. 
+
+Za emulator gremo v android studiu na desni strani pod zavihek "device manager", kliknemo na +, nato "create virtual device" in izberemo željen emulator. Bolje manjši in osnovni model. Po izboru kliknemo next in finish.
+
+Zaženemo aplikacijo ko kliknemo zgoraj na zelen trikotnik.
