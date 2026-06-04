@@ -18,7 +18,7 @@ V ta namen je bila ustvarjena skripta capture_dataset.py
 ### Predobdelava
 * **CLAHE (Contrast Limited Adaptive Histogram Equalization):** Uporabljeno za lokalno izboljšavo kontrasta, kar omogoča prepoznavo v različnih svetlobnih pogojih.
 
-* **Normalizacija.** Vrednosti pikslov so normalizirane na interval [0, 255].
+* **Normalizacija.** Vrednosti pikslov so normalizirane na interval [0, 1].
 
 ### Augmnetacija podatkov
 Za vsako sliko avtomatsko generiramo nabor transformacij
