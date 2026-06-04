@@ -49,7 +49,7 @@ Po zagonu bodo posamezni servisi dostopni na naslednjih vratih:
 
 Alternativno lahko posamezne komponente projekta zaženete ročno.
 
-## Razvoj aplikacij za internet
+### Razvoj aplikacij za internet
 Najprej se premaknite v mapo ```frontend``` in namestite odvisnosti z ukazom:
 
 ```bash
