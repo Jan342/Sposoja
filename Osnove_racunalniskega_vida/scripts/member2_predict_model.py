@@ -16,31 +16,34 @@ def load_model(path):
         "params": params,
     }
 
-async def classifyImage(image):
-    model = load_model(MODEL)
+async def classifyImage(image, model_path=MODEL):
+    model = load_model(model_path)
     feature = extract_features(Path(image), model["params"]).reshape(1, -1)
     k = min(int(model["params"]["k"]), len(model["train_y"]))
     pred, confidence = knn_predict(model["train_x"], model["train_y"], feature, k)
     label = model["labels"][int(pred[0])]
 
-    return json.dumps({"label": label, "confidence": float(confidence[0])}, indent=2)
+    return json.dumps(
+        {
+            "label": label,
+            "confidence": float(confidence[0]),
+            "model": str(model_path),
+            "feature_set": model["params"].get("feature_set", "baseline"),
+        },
+        indent=2,
+    )
 
 
-''''
 def main():
-    #parser = argparse.ArgumentParser(description="Run prediction with the member 2 model artifact.")
-    #parser.add_argument("image", help="Path to the image that should be classified.")
-    #parser.add_argument("--model", default="member2_cv_model/artifacts/member2_model.npz")
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Run prediction with the member 2 model artifact.")
+    parser.add_argument("image", help="Path to the image that should be classified.")
+    parser.add_argument("--model", default=MODEL)
+    args = parser.parse_args()
 
-    model = load_model(Path(args.model))
-    feature = extract_features(Path(args.image), model["params"]).reshape(1, -1)
-    k = min(int(model["params"]["k"]), len(model["train_y"]))
-    pred, confidence = knn_predict(model["train_x"], model["train_y"], feature, k)
-    label = model["labels"][int(pred[0])]
+    import asyncio
 
-    print(json.dumps({"label": label, "confidence": float(confidence[0])}, indent=2))
+    print(asyncio.run(classifyImage(args.image, args.model)))
 
 
 if __name__ == "__main__":
-    main()'''
+    main()

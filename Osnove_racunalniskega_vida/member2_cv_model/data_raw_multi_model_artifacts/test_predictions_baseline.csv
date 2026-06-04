@@ -1,0 +1,11 @@
+image_path,true_label,predicted_label,confidence
+member2_cv_model\data_raw_test_dataset\test\lopar\lopar4.jpg,lopar,lopar,1.0000
+member2_cv_model\data_raw_test_dataset\test\lopar\lopar5.jpg,lopar,lopar,1.0000
+member2_cv_model\data_raw_test_dataset\test\lopar\lopar6.jpg,lopar,lopar,1.0000
+member2_cv_model\data_raw_test_dataset\test\lopar\lopar7.jpg,lopar,no_loparji,1.0000
+member2_cv_model\data_raw_test_dataset\test\lopar\lopar8.jpg,lopar,no_loparji,1.0000
+member2_cv_model\data_raw_test_dataset\test\no_loparji\ipad.jpg,no_loparji,no_loparji,1.0000
+member2_cv_model\data_raw_test_dataset\test\no_loparji\shoes.jpg,no_loparji,no_loparji,1.0000
+member2_cv_model\data_raw_test_dataset\test\no_loparji\watch.jpg,no_loparji,no_loparji,1.0000
+member2_cv_model\data_raw_test_dataset\test\paketnik\IMG_2581.jpg,paketnik,lopar,1.0000
+member2_cv_model\data_raw_test_dataset\test\paketnik\IMG_3.jpg,paketnik,lopar,1.0000
