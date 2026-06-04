@@ -79,4 +79,4 @@ jobs:
           context: Osnove_racunalniskega_vida
           file: Osnove_racunalniskega_vida/Dockerfile
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/sposoja:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:latest
