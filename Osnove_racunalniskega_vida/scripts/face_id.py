@@ -270,7 +270,7 @@ def main():
     args = build_parser().parse_args()
     if args.command == "enroll":
         enroll(args.images, args.model, args.person, args.threshold)
-    elif args.command == "verify":
+    elif args.command == "verifsy":
         print(json.dumps(verify_image(args.image, args.model, args.threshold), indent=2))
     elif args.command == "camera":
         verify_camera(args.model, args.camera_index, args.threshold)
