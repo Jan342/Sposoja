@@ -15,3 +15,62 @@ Dejan – logika izposoje (vmesni del sistema)
 2. teden – implementacija prijave (login)
 4. teden – implementacija sistema izposoje
 6. teden – obvestila in odpravljanje napak (bug fixing)
+
+
+# Namestitev
+Za delovanje celotnega projekta potrebujete:
+- Mongodb
+- Docker (opcijsko priporočljivo)
+
+Projekt je mogoče namestiti na dva načina:
+
+1. **Z uporabo Dockerja in Docker Compose**
+2. **Ročnim zagonom posameznih komponent**
+
+## Namestitev z Dockerjem
+
+Za uporabo Dockerja in Docker Compose odprite terminal v korenski mapi projekta in zaženite naslednji ukaz:
+
+```bash
+docker compose up --build
+```
+Ukaz najprej zgradi vse potrebne Docker slike, nato pa samodejno zažene vse komponente projekta. Po uspešnem zagonu je aplikacija pripravljena za uporabo.
+
+Ko se vse skupaj zaženejo, so tudi različni servisi na različnih portih.
+
+- MongoDb (27017)
+- Backend (3001)
+- Python server (3002)
+- Frontend (5173)
+
+## Ročni zagon komponent
+
+Alternativno lahko posamezne komponente projekta zaženete ročno.
+
+## Razvoj aplikacij za internet
+Najprej se premaknite v mapo **frontend** in namestite odvisnosti z ukazom:
+
+```bash
+npm install
+```
+Ukaz ustvari mapo node_modules, ki vsebuje vse potrebne knjižnice za delovanje aplikacije.
+
+Isto naredite za mapo **backend**
+
+Zagon te aplikacije v obeh mapah **frontend** in **backend**
+
+### Razvojni način
+```bash
+npm run dev
+```
+### Navaden način
+
+```bash
+npm start
+```
+
+
+
+
+
+
