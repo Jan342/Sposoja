@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.benchmark.traceprocessor.Row
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -23,6 +24,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -95,7 +96,11 @@ class MainActivity : ComponentActivity() {
             var history by remember { mutableStateOf(historyRepository.getHistory()) }
             var searchQuery by remember { mutableStateOf("") }
             var showHistory by remember { mutableStateOf(false) }
-            var username by remember { mutableStateOf(preferences.getString("username", "").orEmpty()) }
+            var username by remember {
+                mutableStateOf(
+                    preferences.getString("username", "").orEmpty()
+                )
+            }
             var password by remember { mutableStateOf("") }
             var loginChallenge by remember { mutableStateOf("") }
             var loggedIn by remember { mutableStateOf(false) }
@@ -128,12 +133,17 @@ class MainActivity : ComponentActivity() {
                 if (pendingAction == "register") {
                     registerPhotos.add(photo)
                     if (registerPhotos.size < 3) {
-                        authMessage = "Zajeta fotografija ${registerPhotos.size} / 3. Zajemi naslednjo."
+                        authMessage =
+                            "Zajeta fotografija ${registerPhotos.size} / 3. Zajemi naslednjo."
                         captureFace("register")
                     } else {
                         authLoading = true
                         authMessage = "Registriram obraz..."
-                        faceAuthClient.register(username.trim(), password, registerPhotos.toList()) { result ->
+                        faceAuthClient.register(
+                            username.trim(),
+                            password,
+                            registerPhotos.toList()
+                        ) { result ->
                             runOnUiThread {
                                 authLoading = false
                                 result.onSuccess {
@@ -267,15 +277,20 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         authLoading = true
                                         authMessage = "Preverjam geslo..."
-                                        faceAuthClient.verifyPassword(username.trim(), password) { result ->
+                                        faceAuthClient.verifyPassword(
+                                            username.trim(),
+                                            password
+                                        ) { result ->
                                             runOnUiThread {
                                                 authLoading = false
                                                 result.onSuccess { challenge ->
                                                     loginChallenge = challenge
-                                                    authMessage = "Geslo je pravilno. Preveri se obraz."
+                                                    authMessage =
+                                                        "Geslo je pravilno. Preveri se obraz."
                                                     captureFace("login")
                                                 }.onFailure { error ->
-                                                    authMessage = error.message ?: "Preverjanje gesla ni uspelo."
+                                                    authMessage = error.message
+                                                        ?: "Preverjanje gesla ni uspelo."
                                                 }
                                             }
                                         }
@@ -353,90 +368,103 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier.weight(1f),
                                 )
                             }
-                Scaffold(
-                    bottomBar = {
-                        NavigationBar {
-                            NavigationBarItem(
-                                selected = selectedTab == 0,
-                                onClick = { selectedTab = 0 },
-                                icon = {
-                                    Text(text = "📷", fontSize = 20.sp)
-                                },
-                                label = { Text("Skeniraj") }
-                            )
-                            NavigationBarItem(
-                                selected = selectedTab == 1,
-                                onClick = { selectedTab = 1 },
-                                icon = {
-                                    Text(text = "📋", fontSize = 20.sp)
-                                },
-                                label = { Text("Zgodovina") }
-                            )
-                        }
-                    }
-                ) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
-                        when (selectedTab) {
-                            0 -> ScanTab(
-                                onScanClick = { startScanning(this@MainActivity) }
-                            )
-                            1 -> Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp)
-                            ) {
-                                HistorySection(
-                                    history = filteredHistory,
-                                    totalHistoryCount = history.size,
-                                    searchQuery = searchQuery,
-                                    onSearchQueryChange = { searchQuery = it },
-                                    onClearHistory = {
-                                        history = historyRepository.clearHistory()
-                                        searchQuery = ""
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
+                            Scaffold(
+                                bottomBar = {
+                                    NavigationBar {
+                                        NavigationBarItem(
+                                            selected = selectedTab == 0,
+                                            onClick = { selectedTab = 0 },
+                                            icon = {
+                                                Text(text = "📷", fontSize = 20.sp)
+                                            },
+                                            label = { Text("Skeniraj") }
+                                        )
+                                        NavigationBarItem(
+                                            selected = selectedTab == 1,
+                                            onClick = { selectedTab = 1 },
+                                            icon = {
+                                                Text(text = "📋", fontSize = 20.sp)
+                                            },
+                                            label = { Text("Zgodovina") }
+                                        )
+                                    }
+                                }
+                            ) { innerPadding ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(innerPadding)
+                                ) {
+                                    when (selectedTab) {
+                                        0 -> ScanTab(
+                                            onScanClick = { startScanning(this@MainActivity) }
+                                        )
 
-                        if (showDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showDialog = false },
-                                title = { Text("Paketnik") },
-                                text = { Text("Ali se je paketnik uspešno odprl?") },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = {
-                                            showDialog = false
-                                            showSuccess = true
-                                            history = historyRepository.addOpening(scannedBoxId, "Uspešno")
-                                            selectedTab = 1
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                "Paketnik ID $scannedBoxId se je uspešno odprl.",
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                        },
-                                    ) { Text("DA") }
-                                },
-                                dismissButton = {
-                                    TextButton(
-                                        onClick = {
-                                            showDialog = false
-                                            history = historyRepository.addOpening(scannedBoxId, "Neuspešno")
-                                            selectedTab = 1
-                                        },
-                                    ) { Text("NE") }
-                                },
-                            )
+                                        1 -> Column(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(16.dp)
+                                        ) {
+                                            HistorySection(
+                                                history = filteredHistory,
+                                                totalHistoryCount = history.size,
+                                                searchQuery = searchQuery,
+                                                onSearchQueryChange = { searchQuery = it },
+                                                onClearHistory = {
+                                                    history = historyRepository.clearHistory()
+                                                    searchQuery = ""
+                                                },
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                        }
+                                    }
+
+                                    if (showDialog) {
+                                        AlertDialog(
+                                            onDismissRequest = { showDialog = false },
+                                            title = { Text("Paketnik") },
+                                            text = { Text("Ali se je paketnik uspešno odprl?") },
+                                            confirmButton = {
+                                                TextButton(
+                                                    onClick = {
+                                                        showDialog = false
+                                                        showSuccess = true
+                                                        history = historyRepository.addOpening(
+                                                            scannedBoxId,
+                                                            "Uspešno"
+                                                        )
+                                                        selectedTab = 1
+                                                        Toast.makeText(
+                                                            this@MainActivity,
+                                                            "Paketnik ID $scannedBoxId se je uspešno odprl.",
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
+                                                    },
+                                                ) { Text("DA") }
+                                            },
+                                            dismissButton = {
+                                                TextButton(
+                                                    onClick = {
+                                                        showDialog = false
+                                                        history = historyRepository.addOpening(
+                                                            scannedBoxId,
+                                                            "Neuspešno"
+                                                        )
+                                                        selectedTab = 1
+                                                    },
+                                                ) { Text("NE") }
+                                            },
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+
+
             }
+
         }
     }
 
@@ -457,7 +485,9 @@ class MainActivity : ComponentActivity() {
 
                 val cleanUrl = rawValue.removeSuffix("/")
                 val parts = cleanUrl.split("/")
-                val rawId = parts.find { it.length >= 4 && it.all { char -> char.isDigit() } } ?: ""
+                val rawId =
+                    parts.find { it.length >= 4 && it.all { char -> char.isDigit() } }
+                        ?: ""
                 val boxId = rawId.trimStart('0')
 
                 if (boxId.isNotEmpty()) {
@@ -506,7 +536,6 @@ class MainActivity : ComponentActivity() {
             }
         })
     }
-
     fun processAndPlay(context: Context, base64Data: String) {
         try {
             val clean = base64Data.trim().replace("\"", "")
@@ -558,13 +587,21 @@ class MainActivity : ComponentActivity() {
                     Log.e("D4M", "Končna napaka: ${e.message}")
                     mp.release()
                     runOnUiThread {
-                        Toast.makeText(context, "Napaka pri predvajanju zvoka", Toast.LENGTH_SHORT)
+                        Toast.makeText(
+                            context,
+                            "Napaka pri predvajanju zvoka",
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
                     }
                 }
             } else {
                 runOnUiThread {
-                    Toast.makeText(context, "Napaka: Zvočna datoteka je prazna", Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        context,
+                        "Napaka: Zvočna datoteka je prazna",
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
                 }
             }
@@ -573,94 +610,96 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
     }
-}
 
-@Composable
-fun ScanTab(onScanClick: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseScale"
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        // Title
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "Pametni Paketnik",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Direct4Me",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+    @Composable
+    fun ScanTab(onScanClick: () -> Unit) {
+        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+        val scale by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.08f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(900, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "pulseScale"
         )
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        Box(
-            contentAlignment = Alignment.Center,
+        Column(
             modifier = Modifier
-                .size(240.dp)
-                .clip(CircleShape)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Title
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Pametni Paketnik",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Direct4Me",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(240.dp)
+                    .clip(CircleShape)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                            )
                         )
                     )
-                )
-                .border(
-                    width = 4.dp,
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            MaterialTheme.colorScheme.primary
-                        )
-                    ),
-                    shape = CircleShape
-                )
-                .clickable { onScanClick() }
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .border(
+                        width = 4.dp,
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.primary
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+                    .clickable { onScanClick() }
             ) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "SKENIRAJ",
-                    color = Color.White,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp,
-                    letterSpacing = 3.sp
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "SKENIRAJ",
+                        color = Color.White,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 18.sp,
+                        letterSpacing = 3.sp
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(28.dp))
+            Text(
+                text = "Pritisni krog za skeniranje QR kode paketnika",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
         }
-
-        Spacer(modifier = Modifier.height(28.dp))
-        Text(
-            text = "Pritisni krog za skeniranje QR kode paketnika",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
+
+
