@@ -3,6 +3,33 @@ import numpy as np
 import os
 import random
 
+face_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+def crop_to_face(img):
+    gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 6)
+
+    if len(faces) > 0:
+        (x, y, w, h) = max(faces, key=lambda b: b[2] * b[3])
+        pad_x = int(w * 0.15)
+        pad_y_top = int(h * 0.1)
+        pad_y_bottom = int(h * 0.3)
+        x_new = max(0, x - pad_x)
+        y_new = max(0, y - pad_y_top)
+        w_new = min(img.shape[1] - x_new, w + 2 * pad_x)
+        h_new = min(img.shape[0] - y_new, h + pad_y_top + pad_y_bottom)
+        return img[y_new:y_new+h_new, x_new:x_new+w_new]
+    return None
+
+def align_face(img):
+    eye_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_eye.xml")
+    gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+    eyes = eye_cascade.detectMultiScale(gray)
+
+    if len(eyes) >= 2:
+        return img
+    return None
+
 def imread_unicode(path):
     try:
         return cv.imdecode(np.fromfile(path, dtype=np.uint8), cv.IMREAD_COLOR)
@@ -13,7 +40,9 @@ def preprocess_image(img):
     img = cv.GaussianBlur(img, (3, 3), 0)
 
     gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
-    gray = cv.equalizeHist(gray)
+    '''gray = cv.equalizeHist(gray)'''
+    clache = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    gray = clache.apply(gray)
 
     img = cv.cvtColor(gray, cv.COLOR_GRAY2RGB)
     img = cv.normalize(img, None, alpha=0, beta=255, norm_type=cv.NORM_MINMAX)
@@ -32,9 +61,8 @@ def augment_image(img):
     img_rotate_neg15 = cv.warpAffine(img, M_neg15, (w, h))
     
     img_bright = cv.convertScaleAbs(img, alpha=1.0, beta=40)
-    img_bright1 = cv.convertScaleAbs(img, alpha=1.0, beta=60)
+    img_bright1 = cv.convertScaleAbs(img, alpha=1.0, beta=70)
     img_dark = cv.convertScaleAbs(img, alpha=1.0, beta=-40)
-    img_dark1 = cv.convertScaleAbs(img, alpha=1.0, beta=-60)
 
     img_blur = cv.GaussianBlur(img, (9, 9), 0)
 
@@ -46,7 +74,6 @@ def augment_image(img):
         ("bright", img_bright),
         ("bright1", img_bright1),
         ("dark", img_dark),
-        ("dark1", img_dark1),
         ("blur", img_blur)
     ]
 
@@ -58,9 +85,8 @@ OUT_DIR = os.path.join(BASE_DIR, "dataset")
 IMG_SIZE = (224, 224)
 
 classes = {
-    "lopar": "lopar",
-    "no_loparji": "no_loparji",
-    "paketnik": "paketnik"
+    "FaceDetection": "FaceDetection",
+    "NotFace": "NotFace"
 }
 
 for label, folder in classes.items():
@@ -99,7 +125,12 @@ for label, folder in classes.items():
 
             img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
 
-            img = cv.resize(img, IMG_SIZE)
+            face_img = crop_to_face(img)
+            if face_img is None:
+                print(f"No face detected, skipping: {img_path}")
+                continue
+
+            img = cv.resize(face_img, IMG_SIZE)
             img = preprocess_image(img)
 
             augmented_images = augment_image(img)
