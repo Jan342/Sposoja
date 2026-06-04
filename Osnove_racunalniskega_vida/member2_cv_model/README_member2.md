@@ -1,3 +1,14 @@
+# Član 1: Zajem, priprava in augmentacija podatkov ter del aplikacijske logike
+
+Kot član 1 sem zajel slike loparja z več pozicij. Nad temi fotografijami sem izvajal razne opearacije za predobdelavo slik. Nekaj primerov obračanje(flip) fotografije, rotiranje za 15 stopinj, zasvetlitev/zatemnitev za 40 procentov...
+
+Skripta nam ustvari tudi testne datoteke pod imenom 'test', 'train' in 'val' in v njih naključno razporedi slike v določenem številu.
+Nad slikami v 'train' se model uči,
+slike v 'val' model nikoli ne vidi in so nam v pomoč, da izvemo ali se model uči na pamet,
+slike v 'test' pa testiramo model, da vidimo kako bo deloval v realnem svetu.
+
+Pripravljena je tudi skripta za zajem zaslona, ki shrani sliko v mapo katero vnesemo kot argument.
+
 # Clan 2: model racunalniskega vida
 
 Ta mapa vsebuje samo prispevek clana 2. Datoteke ne spreminjajo zajema podatkov, priprave podatkov, API-ja ali zagonskega okolja.

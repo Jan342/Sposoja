@@ -12,8 +12,8 @@ import time
 import uvicorn
 import uuid
 
-from member2_predict_model import classifyImage
 from face_id import enroll, verify_image
+from scripts.member2_predict_model import classifyImage
 import numpy as np
 import cv2 as cv
 

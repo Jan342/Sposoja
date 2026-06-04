@@ -1,0 +1,48 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+
+  backend:
+    build:
+      context: ./Razvoj_aplikacij_za_internet/backend
+      dockerfile: Dockerfile
+
+    container_name: backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - MONGO_URL=mongodb://mongo:27017/LoparGo
+    depends_on:
+      - mongo
+
+  backend-python:
+    build:
+      context: ./Osnove_racunalniskega_vida
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+
+  frontend:
+    build:
+      context: ./Razvoj_aplikacij_za_internet/frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+
+volumes:
+  mongo_data:
