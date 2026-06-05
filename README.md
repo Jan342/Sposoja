@@ -103,10 +103,10 @@ Teče server z ukazom:
 uvicorn server:app [--reload] --host HOST --port 3002
 ```
 --reload je opcijska nastavitev za razvojni način, ki samodejno ponovno zažene Uvicorn strežnik, ko zazna spremembe v izvorni kodi.
-Primer zagona, kjer se nahajamo v mapi ```scripts```
+Primer zagona, kjer se nahajamo v mapi ```Osnove_racunalniskega_vida``` in priporočljivo je, da se aplikacija zaganja iz korenske mape projekta, saj so Python importi definirani relativno glede na strukturo projekta. S tem zagotovimo, da Python pravilno prepozna module.
 
 ```bash
-uvicorn server:app --host 0.0.0.0 --port 3002
+uvicorn scripts.server:app --host 0.0.0.0 --port 3002
 ```
 
 Po zagonu dobimo informacijo o 'uspešnosti'
