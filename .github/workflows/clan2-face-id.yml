@@ -2,7 +2,7 @@ name: Clan 2 - Face ID model
 
 on:
   workflow_run:
-    workflows: ["member1"]
+    workflows: ["Clan 1 - priprava podatkov"]
     types: completed
   push:
     paths:
