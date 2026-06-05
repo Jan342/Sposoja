@@ -1,6 +1,7 @@
 name: Clan 1 - priprava podatkov
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "Osnove_racunalniskega_vida/scripts/process_data.py"
