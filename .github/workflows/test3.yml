@@ -1,0 +1,103 @@
+name: Testing API and Docker push
+
+on:
+  workflow_run:
+    workflows: ["Clan 2 - Face ID model"]
+    types:
+      - completed
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "Osnove_racunalniskega_vida/scripts/server.py"
+      - "Osnove_racunalniskega_vida/Dockerfile"
+      - "Osnove_racunalniskega_vida/environment.yml"
+      - ".github/workflows/clan3-api-docker.yml"
+  workflow_dispatch:
+
+jobs:
+  test-api:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: Osnove_racunalniskega_vida
+
+    steps:
+      - name: Prenesi kodo
+        uses: actions/checkout@v4
+
+      - name: Nastavi Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Namesti odvisnosti
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Preveri API funkcije
+        env:
+          PYTHONPATH: scripts
+        run: |
+          python - <<'PY'
+          from fastapi import HTTPException
+          from server import hash_password, password_matches, sanitize_username, validate_password
+
+          password_data = hash_password("skrivnost123")
+          assert password_matches("skrivnost123", password_data)
+          assert not password_matches("napacno", password_data)
+          assert sanitize_username(" jan-123 ") == "jan-123"
+
+          try:
+              validate_password("123")
+          except HTTPException as error:
+              assert error.status_code == 400
+          else:
+              raise AssertionError("Prekratko geslo ni bilo zavrnjeno.")
+
+          print("Osnovne API funkcije delujejo.")
+          PY
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test-api
+
+    steps:
+      - name: Prenesi kodo
+        uses: actions/checkout@v4
+
+      - name: Nastavi Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prijava v Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Zgradi oziroma objavi Docker sliko za Osnove_racunalniskega_vida
+        uses: docker/build-push-action@v6
+        with:
+          context: Osnove_racunalniskega_vida
+          file: Osnove_racunalniskega_vida/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:orv
+
+      - name: Zgradi oziroma objavi Docker sliko za Razvoj aplikacij za internet part 1
+        uses: docker/build-push-action@v6
+        with:
+          context: Razvoj_aplikacij_za_internet/frontend
+          file: Razvoj_aplikacij_za_internet/frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:frontend
+
+      - name: Zgradi oziroma objavi Docker sliko za Razvoj aplikacij za internet part 2
+        uses: docker/build-push-action@v6
+        with:
+          context: Razvoj_aplikacij_za_internet/backend
+          file: Razvoj_aplikacij_za_internet/backend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sposoja:backend

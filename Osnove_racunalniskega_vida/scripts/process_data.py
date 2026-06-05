@@ -45,7 +45,7 @@ def preprocess_image(img):
     gray = clache.apply(gray)
 
     img = cv.cvtColor(gray, cv.COLOR_GRAY2RGB)
-    img = cv.normalize(img, None, alpha=0, beta=255, norm_type=cv.NORM_MINMAX)
+    img = cv.normalize(img, None, alpha=0, beta=1, norm_type=cv.NORM_MINMAX)
     return img
 
 def augment_image(img):
