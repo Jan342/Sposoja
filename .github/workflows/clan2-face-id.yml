@@ -1,6 +1,9 @@
 name: Clan 2 - Face ID model
 
 on:
+  workflow_run:
+    workflows: ["member1"]
+    types: completed
   push:
     paths:
       - "Osnove_racunalniskega_vida/scripts/face_id.py"
@@ -14,6 +17,7 @@ on:
 
 jobs:
   test-face-id:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     defaults:
       run:
