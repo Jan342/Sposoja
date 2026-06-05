@@ -12,7 +12,7 @@ import time
 import uvicorn
 import uuid
 
-from face_id import enroll, verify_image
+from scripts.face_id import enroll, verify_image
 from scripts.member2_predict_model import classifyImage
 import numpy as np
 import cv2 as cv
@@ -197,7 +197,7 @@ def validate_challenge(username, challenge):
 def read_image_from_bytes(file_bytes):
     nparr = np.frombuffer(file_bytes, np.uint8)
     img = cv.imdecode(nparr, cv.IMREAD_COLOR)
-    cv.imwrite("result.jpg", img)
+    cv.imwrite("result.jpg", img) #for testing purpose.
     #return img
     return "result.jpg"
 
