@@ -95,7 +95,13 @@ conda activate LoparGO
 Teče server z ukazom:
 
 ```bash
-uvicorn server:app --reload --host 0.0.0.0 --port 3002
+uvicorn server:app [--reload] --host HOST --port 3002
+```
+--reload je opcijska nastavitev za razvojni način, ki samodejno ponovno zažene Uvicorn strežnik, ko zazna spremembe v izvorni kodi.
+Primer zagona, kjer se nahajamo v mapi ```scripts```
+
+```bash
+uvicorn server:app --host 0.0.0.0 --port 3002
 ```
 
 Po zagonu dobimo informacijo o 'uspešnosti'
