@@ -27,7 +27,7 @@ Za delovanje celotnega projekta potrebujete:
 Projekt je mogoče namestiti na dva načina:
 
 1. **Z uporabo Dockerja in Docker Compose**
-2. **Ročnim zagonom posameznih komponent**
+2. **Z ročnim zagonom posameznih komponent**
 
 ## Namestitev z Dockerjem
 
@@ -81,7 +81,7 @@ Za delovanje sistema potrebujete program miniconda na povezavi: https://www.anac
 Okolje namestimo z ukazom v terminalu:
 
 ```bash
-conda install --file environment.yml
+conda env create -f environment.yml
 ```
 
 ### Aktiviramo z
