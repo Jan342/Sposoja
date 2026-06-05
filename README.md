@@ -37,6 +37,11 @@ Za uporabo Dockerja in Docker Compose odprite terminal v korenski mapi projekta 
 docker compose up --build
 ```
 Ukaz najprej zgradi vse potrebne Docker slike, nato pa samodejno zažene vse komponente projekta. Po uspešnem zagonu je aplikacija pripravljena za uporabo.
+To naredimo samo enkrat, ko se enkrat zgradi. Potem pa zaganjamo z ukazom
+```bash
+docker compose up
+```
+kjer uporabi že zgrajene containerje.
 
 Po zagonu bodo posamezni servisi dostopni na naslednjih vratih:
 
