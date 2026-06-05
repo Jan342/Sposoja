@@ -114,3 +114,32 @@ ki vsebuje informacijo, ali je uporabnik potrjen, ter izmerjeno razdaljo in upor
 threshold.
 
 S tem je model neposredno povezan z aplikacijo in uporabljen kot drugi faktor prijave.
+
+## Uporaba s kamero
+
+Face ID se lahko preizkusi tudi neposredno s kamero racunalnika. Najprej je treba
+iz registracijskih slik izdelati model:
+
+```powershell
+python scripts\face_id.py enroll `
+  --images data_raw\face_id\me `
+  --model member2_cv_model\artifacts\clan2_camera_test.npz `
+  --person jan
+```
+
+Nato se lahko odpre kamera:
+
+```powershell
+python scripts\face_id.py camera `
+  --model member2_cv_model\artifacts\clan2_camera_test.npz `
+  --camera-index 0 `
+  --threshold 1.15
+```
+
+Med delovanjem kamere se s tipko `SPACE` preveri trenutni zajeti okvir, s tipko `ESC`
+pa se okno kamere zapre. Ce kamera z indeksom `0` ne deluje, se lahko poskusi se z
+`--camera-index 1`.
+
+Pri preverjanju kamera zajame trenutno sliko, sistem na njej poisce obraz, izracuna
+DCT in LBP znacilke ter jih primerja s shranjenimi obraznimi predlogami v `.npz`
+modelu. Ce je izmerjena razdalja manjsa ali enaka thresholdu, je uporabnik potrjen.
