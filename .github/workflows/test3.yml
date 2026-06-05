@@ -1,6 +1,10 @@
 name: Testing API and Docker push
 
 on:
+  workflow_run:
+    workflows: ["Clan 2 - Face ID model"]
+    types:
+      - completed
   push:
     branches: [main]
   pull_request:
@@ -13,6 +17,7 @@ on:
 
 jobs:
   test-api:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     defaults:
       run:
