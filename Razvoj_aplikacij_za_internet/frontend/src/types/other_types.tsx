@@ -18,6 +18,7 @@ export type Package = {
     racketLimit: number;
     racketTotal: number;
     freeTotal?: number;
+    rentedBy?: string | null;
 };
 
 export type RacketData = {

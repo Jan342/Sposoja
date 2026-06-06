@@ -228,9 +228,9 @@ function Dashboard() {
                                                             {rentedPkg
                                                                 ? <>
                                                                     <Badge bg="primary">{rentedPkg.name}</Badge><br />
-                                                                    <small className="text-muted">📍 {rentedPkg.location}</small>
+                                                                    <small>📍 {rentedPkg.location}</small>
                                                                 </>
-                                                                : <span className="text-muted">– ni aktiven –</span>
+                                                                : <span>– ni aktiven –</span>
                                                             }
                                                         </td>
 
@@ -285,7 +285,6 @@ function Dashboard() {
                                             <tr>
                                                 <th>Datum in čas</th>
                                                 <th>Član</th>
-                                                <th>Lopar</th>
                                                 <th>Paketnik</th>
                                                 <th>Akcija</th>
                                             </tr>
@@ -296,15 +295,14 @@ function Dashboard() {
                                                     <td><small>{formatDate(entry.timestamp)}</small></td>
                                                     <td>
                                                         {entry.user
-                                                            ? <><strong>{entry.user.username}</strong><br /><small className="text-primary">{entry.user.firstName} {entry.user.lastName}</small></>
-                                                            : <span className="text-muted">–</span>
+                                                            ? <><strong  className="text-secondary">{entry.user.username}</strong><br /><small>{entry.user.firstName} {entry.user.lastName}</small></>
+                                                            : <span>–</span>
                                                         }
                                                     </td>
-                                                    <td>{entry.racket?.model || <span className="text-muted">–</span>}</td>
                                                     <td>
                                                         {entry.package
-                                                            ? <><span>{entry.package.name}</span><br /><small className="text-primary">{entry.package.location}</small></>
-                                                            : <span className="text-muted">–</span>
+                                                            ? <><span>{entry.package.name}</span><br /><small className="text-danger">{entry.package.location}</small></>
+                                                            : <span>–</span>
                                                         }
                                                     </td>
                                                     <td>

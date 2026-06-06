@@ -188,7 +188,8 @@ function UserDashboard(props) {
                                     <ListGroup variant="flush" className="bg-transparent text-white">
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Hkrati imaš lahko rezerviran le <strong>1 paketnik</strong>.</ListGroup.Item>
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Ob izposoji in vračilu preveri zasedenost.</ListGroup.Item>
-                                        <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Srečno igro! 🎾</ListGroup.Item>
+                                        <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Izdelke pravočasno vrni v paketnik!</ListGroup.Item>
+                                        <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Srečno igro!</ListGroup.Item>
                                     </ListGroup>
                                 </Card.Body>
                             </Card>
@@ -234,6 +235,7 @@ function UserDashboard(props) {
                                 <p className="text-muted mb-4">Pregled paketnikov. Lahko si izposodiš paketnik ali pa pogledaš loparje v njem.</p>
                                 <Row className="g-4">
                                     {packages.map((pkg) => {
+                                        const isRented = !!pkg.rentedBy;
                                         return (
                                             <Col key={pkg._id} xs={12} sm={6} md={4}>
                                                 <Card
@@ -253,9 +255,6 @@ function UserDashboard(props) {
                                                                 📍 {pkg.location}
                                                             </Card.Text>
                                                             <div className="d-flex gap-2 flex-wrap mb-3">
-                                                                <Badge bg="success">
-                                                                    ✅ {pkg.freeTotal} prostih loparjev
-                                                                </Badge>
                                                                 <Badge bg="secondary">
                                                                     🎾 {pkg.racketTotal} / {pkg.racketLimit} loparjev
                                                                 </Badge>
@@ -263,16 +262,17 @@ function UserDashboard(props) {
                                                         </div>
                                                         <div className="d-flex flex-column gap-2 mt-3">
                                                             <Button
-                                                                variant="primary"
+                                                                variant={isRented ? "danger" : "primary"}
                                                                 className="w-100"
                                                                 size="sm"
+                                                                disabled={isRented}
                                                                 onClick={() => getPopup.confirm({
                                                                     text: `Ali si želite izposoditi paketnik "${pkg.name}"?`,
                                                                     showCancel: true,
                                                                     onConfirm: () => handleRentPackage(pkg)
                                                                 })}
                                                             >
-                                                                🔑 Izposodi paketnik
+                                                                {isRented ? "🔒 Že izposojen" : "🔑 Izposodi paketnik"}
                                                             </Button>
                                                             <Button
                                                                 variant="outline-light"
@@ -370,6 +370,7 @@ function UserDashboard(props) {
                             </Card.Body>
                         </Card>
                     </Col>
+                    {/* Tega vec ne rabimo? */}
                     <Col xs={12} md={5}>
                         <Card bg="dark" text="white" className="border-0 shadow h-100 p-3">
                             <Card.Body>

@@ -1,14 +1,6 @@
 {
-  "jan": {
-    "salt": "K1X8dXfvcy+KKDdiVpI6Jg==",
-    "hash": "xINBHijX646bY0Z5RilC/zfnktUhIC24OuXHmit2mHQ="
-  },
   "uros": {
-    "salt": "XKPbryyRZzzZMv+JVK+70w==",
-    "hash": "FbEVa+oaFBqzv2G8T831gbAXjUp5LFKRCfhW1G02l1M="
-  },
-  "uros1": {
-    "salt": "xPHR0hQVcIzkYYwnoGz8jA==",
-    "hash": "gvu//i1gBFQ4ikDmpfyDmGl+AQs61NtRtVVL7eMs1ys="
+    "salt": "jP3l3wg4lbHaeH+k6d1pug==",
+    "hash": "CmIl/baQ2Tcl8iEjG5NSMUrleFqd6uE0didesjyfoG4="
   }
 }

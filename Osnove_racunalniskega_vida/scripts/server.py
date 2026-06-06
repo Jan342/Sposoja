@@ -20,7 +20,6 @@ import cv2 as cv
 app = FastAPI()
 FACE_MODEL_DIR = Path("member2_cv_model/artifacts/face_id_users")
 USER_STORE_PATH = Path("member2_cv_model/artifacts/face_id_users.json")
-# Hrani dodelitve paketnikov: { "uros": "1265", "janez": "5432" }
 BOX_ASSIGNMENTS_PATH = Path("member2_cv_model/artifacts/box_assignments.json")
 LOGIN_CHALLENGES = {}
 CHALLENGE_TTL_SECONDS = 120
@@ -130,13 +129,6 @@ async def login_face(
 
 @app.post("/access/check")
 async def check_access(request: Request):
-    """
-    Preveri, ali ima [username] dostop do paketnika [boxId].
-    Podatki so shranjeni v box_assignments.json:
-      { "uros": "1265", "janez": "5432" }
-    Prejme: { "username": "...", "boxId": "..." }
-    Vrne:   { "allowed": true/false }
-    """
     body = await request.json()
     username = body.get("username", "").strip()
     box_id = body.get("boxId", "").strip()
@@ -153,7 +145,6 @@ async def check_access(request: Request):
         print(f"[ACCESS CHECK] Zavrnjen - {username!r} nima dodeljenega paketnika.")
         return {"allowed": False, "reason": "Nimate dodeljenega paketnika."}
 
-    # Primerjamo kot niza (oba brez vodilnih nic)
     allowed = str(assigned_box).lstrip("0") == str(box_id).lstrip("0")
     if allowed:
         print(f"[ACCESS CHECK] Odobren - {username!r} -> paketnik {box_id!r}")

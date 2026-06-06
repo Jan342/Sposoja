@@ -3,6 +3,33 @@ var UserModel = require('../models/userModel.js');
 var Package = require('../models/packageModel.js');
 const racketModel = require('../models/racketModel.js');
 const LockerLog = require('../models/lockerLogModel.js');
+const fs = require('fs');
+const path = require('path');
+
+const BOX_ASSIGNMENTS_PATH = path.resolve(
+    __dirname,
+    '../../../Osnove_racunalniskega_vida/scripts/member2_cv_model/artifacts/box_assignments.json'
+);
+
+function loadBoxAssignments() {
+    try {
+        if (!fs.existsSync(BOX_ASSIGNMENTS_PATH)) return {};
+        return JSON.parse(fs.readFileSync(BOX_ASSIGNMENTS_PATH, 'utf8'));
+    } catch (e) {
+        console.error('[BOX_ASSIGNMENTS] Napaka pri branju:', e.message);
+        return {};
+    }
+}
+
+function saveBoxAssignments(data) {
+    try {
+        fs.mkdirSync(path.dirname(BOX_ASSIGNMENTS_PATH), { recursive: true });
+        fs.writeFileSync(BOX_ASSIGNMENTS_PATH, JSON.stringify(data, null, 2), 'utf8');
+        console.log('[BOX_ASSIGNMENTS] Shranjeno:', JSON.stringify(data));
+    } catch (e) {
+        console.error('[BOX_ASSIGNMENTS] Napaka pri pisanju:', e.message);
+    }
+}
 
 /**
  * clubController.js
@@ -248,7 +275,6 @@ module.exports = {
         });
     },
 
-    // For clan members: get all packages in their club with free/total racket counts
     getClubPackagesForMember: function (req, res) {
         if (!req.session || !req.session.userId) {
             return res.status(401).json({ error: "Niste prijavljeni" });
@@ -287,7 +313,6 @@ module.exports = {
         });
     },
 
-    // For clan members: get rackets inside a specific package of their club
     getClubPackageRacketsForMember: function (req, res) {
         if (!req.session || !req.session.userId) {
             return res.status(401).json({ error: "Niste prijavljeni" });
@@ -411,11 +436,27 @@ module.exports = {
                 if (err) return res.status(500).json({ error: "Napaka pri iskanju paketnika" });
                 if (!pkg) return res.status(404).json({ error: "Paketnik ne obstaja ali ne pripada vašemu klubu" });
 
+                if (pkg.rentedBy) {
+                    return res.status(400).json({ error: "Ta paketnik je že izposojen." });
+                }
+
+                pkg.rentedBy = user._id;
+                pkg.save(function (err) {
+                    if (err) return res.status(500).json({ error: "Napaka pri označevanju paketnika" });
+
                     user.rentedPackage = pkg._id;
                     user.save(function (err, savedUser) {
                         if (err) return res.status(500).json({ error: "Napaka pri shranjevanju izposoje paketnika" });
 
-                        // Populate rentedPackage for response
+                        if (pkg.boxId) {
+                            const assignments = loadBoxAssignments();
+                            assignments[user.username] = String(pkg.boxId);
+                            saveBoxAssignments(assignments);
+                            console.log(`[BOX_ASSIGNMENTS] ${user.username} -> paketnik ${pkg.boxId} (${pkg.name})`);
+                        } else {
+                            console.warn(`[BOX_ASSIGNMENTS] Paketnik "${pkg.name}" nima nastavljenega boxId!`);
+                        }
+
                         UserModel.findById(savedUser._id).populate('rentedPackage').exec(function (popErr, fullyPopulatedUser) {
                             if (popErr || !fullyPopulatedUser) {
                                 fullyPopulatedUser = savedUser;
@@ -436,6 +477,7 @@ module.exports = {
                             return res.status(200).json(fullyPopulatedUser);
                         });
                     });
+                });
             });
         });
     },

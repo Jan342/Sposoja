@@ -503,7 +503,6 @@ class MainActivity : ComponentActivity() {
                     scannedBoxId = boxId
                     Log.d("D4M", "Box ID: $boxId")
 
-                    // 1. korak: preveri dostop pri našem API-ju
                     openBoxLoading = true
                     Log.d("D4M", "Preverjam dostop za $username -> paketnik $boxId")
                     faceAuthClient.checkAccess(username, boxId) { result ->

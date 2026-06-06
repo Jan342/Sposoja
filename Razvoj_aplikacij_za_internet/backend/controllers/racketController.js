@@ -133,8 +133,8 @@ module.exports = {
             return res.status(401).json({ message: "Only clubs can add packages" });
         }
 
-        if (!req.body.name || !req.body.location) {
-            return res.status(400).json({ message: "Package name and location are required" });
+        if (!req.body.name || !req.body.location || !req.body.boxId) {
+            return res.status(400).json({ message: "Package name, location and boxId are required" });
         }
 
         var racketLimit = Number(req.body.racketLimit);
@@ -170,6 +170,7 @@ module.exports = {
                 var package = new Package({
                     name: req.body.name,
                     location: req.body.location,
+                    boxId: req.body.boxId,
                     racketLimit: racketLimit,
                     club: club._id
                 });

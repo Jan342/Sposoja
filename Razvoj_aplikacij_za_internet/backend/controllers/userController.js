@@ -5,6 +5,29 @@ const Club = require('../models/clubModel.js');
 const User = require('../models/userModel.js');
 const Package = require('../models/packageModel.js');
 const LockerLog = require('../models/lockerLogModel.js');
+const fs = require('fs');
+const path = require('path');
+
+const BOX_ASSIGNMENTS_PATH = path.resolve(
+    __dirname,
+    '../../../Osnove_racunalniskega_vida/scripts/member2_cv_model/artifacts/box_assignments.json'
+);
+
+function loadBoxAssignments() {
+    try {
+        if (!fs.existsSync(BOX_ASSIGNMENTS_PATH)) return {};
+        return JSON.parse(fs.readFileSync(BOX_ASSIGNMENTS_PATH, 'utf8'));
+    } catch (e) { return {}; }
+}
+
+function saveBoxAssignments(data) {
+    try {
+        fs.mkdirSync(path.dirname(BOX_ASSIGNMENTS_PATH), { recursive: true });
+        fs.writeFileSync(BOX_ASSIGNMENTS_PATH, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+        console.error('[BOX_ASSIGNMENTS] Napaka pri pisanju:', e.message);
+    }
+}
 
 /**
  * userController.js
@@ -125,7 +148,6 @@ module.exports = {
                 return res.status(400).json({ message: "Uporabnik ali klub ni bil najden." });
             }
 
-            // Handle direct package return
             if (borrower.rentedPackage) {
                 const packageId = borrower.rentedPackage;
                 ActiveModel.findByIdAndUpdate(
@@ -139,8 +161,17 @@ module.exports = {
 
                     req.session.user = updatedBorrower;
 
+                    if (borrower.username) {
+                        const assignments = loadBoxAssignments();
+                        delete assignments[borrower.username];
+                        saveBoxAssignments(assignments);
+                        console.log(`[BOX_ASSIGNMENTS] Izbrisana dodelitev za ${borrower.username}`);
+                    }
+
                     Package.findById(packageId).exec(function (err, pkg) {
                         if (!err && pkg) {
+                            pkg.rentedBy = null;
+                            pkg.save();
                             var log = new LockerLog({
                                 user: userType === 'club' ? null : userId,
                                 racket: null,
