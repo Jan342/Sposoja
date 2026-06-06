@@ -35,15 +35,22 @@ module.exports = {
                     return next(err);
                 }
 
-                req.session.userId = user._id;
-                req.session.userType = 'person';
-                req.session.user = user;
-                return res.json({
-                    _id: user._id,
-                    username: user.username,
-                    role: user.role,
-                    rented: user.rented,
-                    accountType: 'person'
+                // Populate rentedPackage
+                UserModel.findById(user._id).populate('rentedPackage').exec(function(popErr, populatedUser) {
+                    if (popErr || !populatedUser) {
+                        populatedUser = user;
+                    }
+                    req.session.userId = populatedUser._id;
+                    req.session.userType = 'person';
+                    req.session.user = populatedUser;
+                    return res.json({
+                        _id: populatedUser._id,
+                        username: populatedUser.username,
+                        role: populatedUser.role,
+                        rented: populatedUser.rented,
+                        rentedPackage: populatedUser.rentedPackage,
+                        accountType: 'person'
+                    });
                 });
             });
         });

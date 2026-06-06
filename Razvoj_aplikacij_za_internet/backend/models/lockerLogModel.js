@@ -8,8 +8,7 @@ var lockerLogSchema = new Schema({
     },
     'racket': {
         type: Schema.Types.ObjectId,
-        ref: 'racket',
-        required: true
+        ref: 'racket'
     },
     'package': {
         type: Schema.Types.ObjectId,

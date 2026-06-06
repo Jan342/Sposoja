@@ -25,6 +25,10 @@ var userSchema = new Schema({
 	'assignedPackage' : {
 		type: Schema.Types.ObjectId,
 		ref: 'package'
+	},
+	'rentedPackage' : {
+		type: Schema.Types.ObjectId,
+		ref: 'package'
 	}
 });
 

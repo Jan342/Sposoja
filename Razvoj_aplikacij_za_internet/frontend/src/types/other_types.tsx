@@ -17,6 +17,7 @@ export type Package = {
     location: string;
     racketLimit: number;
     racketTotal: number;
+    freeTotal?: number;
 };
 
 export type RacketData = {
@@ -27,6 +28,7 @@ export type RacketData = {
     path?: string;
     rented?: boolean;
     owner?: string;
+    package?: string;
 };
 
 export type Member = {
@@ -36,6 +38,12 @@ export type Member = {
     lastName?: string;
     role: string;
     assignedPackage?: { _id: string; name: string; location: string } | null;
+    rentedPackage?: { _id: string; name: string; location: string } | null;
+    rented?: {
+        _id: string;
+        model: string;
+        package?: { _id: string; name: string; location: string } | null;
+    } | null;
 };
 
 export type LogEntry = {
