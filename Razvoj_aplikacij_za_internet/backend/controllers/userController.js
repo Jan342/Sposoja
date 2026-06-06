@@ -125,8 +125,42 @@ module.exports = {
                 return res.status(400).json({ message: "Uporabnik ali klub ni bil najden." });
             }
 
+            // Handle direct package return
+            if (borrower.rentedPackage) {
+                const packageId = borrower.rentedPackage;
+                ActiveModel.findByIdAndUpdate(
+                    userId,
+                    { $unset: { rentedPackage: "" } },
+                    { new: true }
+                ).exec(function (err, updatedBorrower) {
+                    if (err) {
+                        return res.status(500).json(err);
+                    }
+
+                    req.session.user = updatedBorrower;
+
+                    Package.findById(packageId).exec(function (err, pkg) {
+                        if (!err && pkg) {
+                            var log = new LockerLog({
+                                user: userType === 'club' ? null : userId,
+                                racket: null,
+                                package: pkg._id,
+                                club: pkg.club,
+                                action: 'vrnitev'
+                            });
+                            log.save(function (logErr) {
+                                if (logErr) console.error('Napaka pri shranjevanju loga:', logErr);
+                            });
+                        }
+                    });
+
+                    return res.status(200).json(updatedBorrower);
+                });
+                return;
+            }
+
             if (!borrower.rented) {
-                return res.status(400).json({ message: "Nimate izposojenega nobenega loparja." });
+                return res.status(400).json({ message: "Nimate izposojenega nobenega loparja ali paketnika." });
             }
 
             const racketId = borrower.rented;
