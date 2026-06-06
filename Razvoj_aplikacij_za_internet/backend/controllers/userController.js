@@ -233,6 +233,39 @@ module.exports = {
                 });
             });
         });
+    },
+
+    logUnlock: function (req, res) {
+        const { username, boxId } = req.body;
+        if (!username || !boxId) {
+            return res.status(400).json({ error: "Manjkata username ali boxId" });
+        }
+
+        User.findOne({ username: username }).exec(function (err, user) {
+            if (err || !user) {
+                return res.status(404).json({ error: "Uporabnik ni najden" });
+            }
+
+            Package.findOne({ boxId: boxId }).exec(function (err, pkg) {
+                if (err || !pkg) {
+                    return res.status(404).json({ error: "Paketnik ni najden" });
+                }
+
+                var log = new LockerLog({
+                    user: user._id,
+                    racket: null,
+                    package: pkg._id,
+                    club: pkg.club,
+                    action: 'odklep'
+                });
+
+                log.save(function (logErr) {
+                    if (logErr) {
+                        return res.status(500).json({ error: "Napaka pri shranjevanju loga" });
+                    }
+                    return res.status(200).json({ message: "Odklep uspesno zabelezen" });
+                });
+            });
+        });
     }
 };
-

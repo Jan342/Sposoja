@@ -22,7 +22,7 @@ var lockerLogSchema = new Schema({
     },
     'action': {
         type: String,
-        enum: ['izposoja', 'vrnitev'],
+        enum: ['izposoja', 'vrnitev', 'odklep'],
         required: true
     },
     'timestamp': {

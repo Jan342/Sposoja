@@ -115,6 +115,39 @@ class FaceAuthClient(
     }
 
 
+    fun logUnlock(
+        username: String,
+        boxId: String,
+        onResult: (Result<Boolean>) -> Unit,
+    ) {
+        val json = JSONObject().apply {
+            put("username", username)
+            put("boxId", boxId)
+        }
+
+        val nodeUrl = baseUrl.replace("3002", "3001")
+        val request = Request.Builder()
+            .url("$nodeUrl/users/logUnlock")
+            .post(json.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onResult(Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        onResult(Result.failure(IOException("HTTP ${response.code}")))
+                        return
+                    }
+                    onResult(Result.success(true))
+                }
+            }
+        })
+    }
+
     private fun execute(
         path: String,
         body: MultipartBody,

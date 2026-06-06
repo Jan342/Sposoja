@@ -448,6 +448,13 @@ class MainActivity : ComponentActivity() {
                                                             "Paketnik ID $scannedBoxId se je uspešno odprl.",
                                                             Toast.LENGTH_SHORT,
                                                         ).show()
+                                                        
+                                                        // Log in Node.js backend
+                                                        faceAuthClient.logUnlock(username, scannedBoxId) { logResult ->
+                                                            logResult.onFailure {
+                                                                Log.e("D4M", "Napaka pri beleženju odklepa: ${it.message}")
+                                                            }
+                                                        }
                                                     },
                                                 ) { Text("DA") }
                                             },
