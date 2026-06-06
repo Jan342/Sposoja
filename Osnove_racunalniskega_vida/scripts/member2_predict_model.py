@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 import numpy as np
-from scripts.member2_train_model import extract_features, knn_predict
+from member2_train_model import extract_features, knn_predict
 
 MODEL = "member2_cv_model/artifacts/member2_model.npz"
 
