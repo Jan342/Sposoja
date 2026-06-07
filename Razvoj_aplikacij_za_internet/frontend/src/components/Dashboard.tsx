@@ -171,7 +171,7 @@ function Dashboard() {
 
                             <Col lg={8}>
                                 <h4>
-                                    {selectedPackage ? `Loparji v paketniku: ${selectedPackage.name}` : "Loparji"}
+                                    {selectedPackage ? `Loparji v paketniku:` : "Loparji"}
                                 </h4>
 
                                 {!selectedPackage ? (
