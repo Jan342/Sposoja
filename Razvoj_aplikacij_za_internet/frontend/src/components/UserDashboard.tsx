@@ -267,7 +267,7 @@ function UserDashboard(props) {
                                                                 size="sm"
                                                                 disabled={isRented}
                                                                 onClick={() => getPopup.confirm({
-                                                                    text: `Ali si želite izposoditi paketnik "${pkg.name}"?`,
+                                                                    text: `Ali želiš izposoditi paketnik "${pkg.name}"?`,
                                                                     showCancel: true,
                                                                     onConfirm: () => handleRentPackage(pkg)
                                                                 })}

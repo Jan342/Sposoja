@@ -307,7 +307,7 @@ function Dashboard() {
                                                     </td>
                                                     <td>
                                                         {entry.action === 'izposoja'
-                                                            ? <Badge bg="warning" text="dark">🔑 Izposoja</Badge>
+                                                            ? <Badge bg="warning" text="dark">🔑 Rezervirano</Badge>
                                                             : entry.action === 'vrnitev'
                                                                 ? <Badge bg="success">🔒 Vrnitev</Badge>
                                                                 : <Badge bg="info">📱 Odklep</Badge>

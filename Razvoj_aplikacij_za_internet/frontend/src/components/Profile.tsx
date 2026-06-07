@@ -260,7 +260,7 @@ function Profile() {
 
                         <p><strong>Uporabnik:</strong> {user.username || "Prijavljen"}</p>
                         <p>
-                            <strong>Status racuna:</strong>{" "}
+                            <strong>Status računa:</strong>{" "}
                             {user.accountType === "club" ? (
                                 <span className="text-warning fw-bold">Klub</span>
                             ) : user.role === "clan" ? (
@@ -272,9 +272,9 @@ function Profile() {
 
                         {user.accountType !== "club" && user.rented && (
                             <Alert variant="info" className="mt-3 shadow-sm border-0 bg-info bg-opacity-25 text-black">
-                                <strong>Trenutno imas izposojen lopar!</strong><br />
+                                <strong>Trenutno imaš izposojen lopar!</strong><br />
                                 ID izposojenega loparja: <code className="text-black">{user.rented}</code><br />
-                                <small className="text-muted">Obisci omarico za prevzem.</small>
+                                <small className="text-muted">Obišči omarico za prevzem.</small>
                             </Alert>
                         )}
 
@@ -313,7 +313,7 @@ function Profile() {
                                 {showClubSettings && (
                                     <Form onSubmit={updateClubSettings} className="mt-3">
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Stevilo dovoljenih paketnikov</Form.Label>
+                                            <Form.Label>Število dovoljenih paketnikov</Form.Label>
                                             <Form.Control
                                                 type="number"
                                                 min={currentPackageCount}

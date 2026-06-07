@@ -311,7 +311,7 @@ async function addRacket(e: FormEvent<HTMLFormElement>){
 
                             {selectedPackageFull && (
                                 <Alert variant="warning" className="mt-3 text-dark">
-                                    Izbrani paketnik je ze poln. Povecaj stevilo loparjev za ta paketnik.
+                                    Izbrani paketnik je že poln. Povečaj število loparjev za ta paketnik.
                                 </Alert>
                             )}
                         </Form>
