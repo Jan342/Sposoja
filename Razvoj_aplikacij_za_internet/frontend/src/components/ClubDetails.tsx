@@ -79,7 +79,7 @@ function ClubDetails() {
                         <Card.Body className="p-4">
                             <h4 className="fw-bold mb-3">Osnovni podatki</h4>
                             <p className="mb-2">
-                                <span className="text-muted d-block">Uporabnisko ime</span>
+                                <span className="text-muted d-block">Uporabniško ime</span>
                                 <strong>{club.username}</strong>
                             </p>
                             <p className="mb-2">
