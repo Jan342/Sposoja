@@ -391,10 +391,11 @@ function UserDashboard(props) {
 
     return (
         <Row>
+            <h2 className="mb-4 text-black">Klubi</h2>
             {clubs.map((club) => (
                 <Col key={club._id} xs={12} md={6} className="mb-4">
                     <Card bg="dark" text="white" className="shadow-sm h-100">
-                        <Card.Img variant="top" src={"../../public/racket.jpg"} style={{ height: "220px", objectFit: "cover" }} />
+                        <Card.Img variant="top" src={club.profileImage} style={{ height: "220px", objectFit: "cover" }} />
                         <Card.Body>
                             <Card.Title>{club.clubName}</Card.Title>
                             <div className="d-flex gap-3">

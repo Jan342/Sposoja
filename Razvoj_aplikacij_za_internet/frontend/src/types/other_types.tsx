@@ -64,4 +64,5 @@ export type ClubData = {
     clubName: string;
     address: string;
     packageCount: Number;
+    profileImage?: string;
 }
