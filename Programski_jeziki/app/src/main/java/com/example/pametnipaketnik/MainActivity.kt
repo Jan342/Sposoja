@@ -97,11 +97,7 @@ class MainActivity : ComponentActivity() {
             var history by remember { mutableStateOf(historyRepository.getHistory()) }
             var searchQuery by remember { mutableStateOf("") }
             var showHistory by remember { mutableStateOf(false) }
-            var username by remember {
-                mutableStateOf(
-                    preferences.getString("username", "").orEmpty()
-                )
-            }
+            var username by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
             var loginChallenge by remember { mutableStateOf("") }
             var loggedIn by remember { mutableStateOf(false) }
@@ -220,12 +216,16 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                        verticalArrangement = if (!loggedIn) {
+                            Arrangement.Center
+                        } else {
+                            Arrangement.spacedBy(24.dp)
+                        },
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         if (!loggedIn) {
                             Text(
-                                text = "Face ID prijava",
+                                text = "Prijava",
                                 style = MaterialTheme.typography.headlineMedium,
                             )
 
@@ -253,7 +253,7 @@ class MainActivity : ComponentActivity() {
                                 singleLine = true,
                             )
 
-                            Text("Geslo je prvi faktor, obraz pa drugi faktor prijave.")
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Button(
                                 onClick = {
