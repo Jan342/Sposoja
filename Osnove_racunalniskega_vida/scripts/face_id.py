@@ -149,9 +149,8 @@ def enroll(face_dir, model_path, person_name, threshold_override=None):
         raise SystemExit("Fewer than 3 usable faces were detected. Add clearer front-facing images.")
 
     templates = np.vstack(templates)
-    threshold, nearest_distances = calculate_threshold(templates)
-    if threshold_override is not None:
-        threshold = float(threshold_override)
+    calculated_threshold, nearest_distances = calculate_threshold(templates)
+    threshold = float(threshold_override) if threshold_override is not None else 1.15
 
     model_path = Path(model_path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -172,6 +171,7 @@ def enroll(face_dir, model_path, person_name, threshold_override=None):
         "usable_images": len(used_images),
         "skipped_images": skipped_images,
         "threshold": threshold,
+        "calculated_threshold": calculated_threshold,
         "nearest_template_distances": nearest_distances,
     }
     print(json.dumps(result, indent=2))
