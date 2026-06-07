@@ -238,7 +238,7 @@ def validate_challenge(username, challenge):
 def read_image_from_bytes(file_bytes):
     nparr = np.frombuffer(file_bytes, np.uint8)
     img = cv.imdecode(nparr, cv.IMREAD_COLOR)
-    cv.imwrite("result.jpg", img)
+    cv.imwrite("result.jpg", img) #for testing purpose.
     #return img
     return "result.jpg"
 
