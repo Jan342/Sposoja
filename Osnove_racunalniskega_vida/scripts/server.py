@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from pathlib import Path
 import base64
 import hashlib
@@ -12,14 +12,15 @@ import time
 import uvicorn
 import uuid
 
-from scripts.face_id import enroll, verify_image
-from scripts.member2_predict_model import classifyImage
+from face_id import enroll, verify_image
+from member2_predict_model import classifyImage
 import numpy as np
 import cv2 as cv
 
 app = FastAPI()
 FACE_MODEL_DIR = Path("member2_cv_model/artifacts/face_id_users")
 USER_STORE_PATH = Path("member2_cv_model/artifacts/face_id_users.json")
+BOX_ASSIGNMENTS_PATH = Path("member2_cv_model/artifacts/box_assignments.json")
 LOGIN_CHALLENGES = {}
 CHALLENGE_TTL_SECONDS = 120
 
@@ -126,6 +127,33 @@ async def login_face(
     }
 
 
+@app.post("/access/check")
+async def check_access(request: Request):
+    body = await request.json()
+    username = body.get("username", "").strip()
+    box_id = body.get("boxId", "").strip()
+
+    print(f"[ACCESS CHECK] username={username!r}, boxId={box_id!r}")
+
+    if not username or not box_id:
+        raise HTTPException(status_code=400, detail="Manjkata username ali boxId.")
+
+    assignments = load_box_assignments()
+    assigned_box = assignments.get(username)
+
+    if assigned_box is None:
+        print(f"[ACCESS CHECK] Zavrnjen - {username!r} nima dodeljenega paketnika.")
+        return {"allowed": False, "reason": "Nimate dodeljenega paketnika."}
+
+    allowed = str(assigned_box).lstrip("0") == str(box_id).lstrip("0")
+    if allowed:
+        print(f"[ACCESS CHECK] Odobren - {username!r} -> paketnik {box_id!r}")
+    else:
+        print(f"[ACCESS CHECK] Zavrnjen - {username!r} ima paketnik {assigned_box!r}, ne {box_id!r}")
+
+    return {"allowed": allowed}
+
+
 def sanitize_username(username):
     safe_username = re.sub(r"[^a-zA-Z0-9_-]", "", username.strip())
     if not safe_username:
@@ -174,6 +202,19 @@ def load_users():
 def save_users(users):
     USER_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
     USER_STORE_PATH.write_text(json.dumps(users, indent=2), encoding="utf-8")
+
+
+def load_box_assignments() -> dict:
+    """Naloži dodelitve paketnikov iz JSON datoteke.
+    Format: { "username": "boxId", ... }
+    Primer: { "uros": "1265", "janez": "5432" }
+    """
+    if not BOX_ASSIGNMENTS_PATH.exists():
+        return {}
+    try:
+        return json.loads(BOX_ASSIGNMENTS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raise HTTPException(status_code=500, detail="Datoteka dodelitev paketnikov ni berljiva.")
 
 
 def remove_expired_challenges():

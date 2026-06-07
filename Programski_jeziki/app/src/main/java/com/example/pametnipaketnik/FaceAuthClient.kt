@@ -7,13 +7,14 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 
 class FaceAuthClient(
-    private val baseUrl: String = "http://164.8.219.13:3002",
+    private val baseUrl: String = "http://192.168.56.1:3002",
 ) {
     private val client = OkHttpClient()
     private val jpegType = "image/jpeg".toMediaType()
@@ -66,6 +67,85 @@ class FaceAuthClient(
             .build()
 
         execute("/face/login", body, "authenticated", onResult)
+    }
+
+    fun checkAccess(
+        username: String,
+        boxId: String,
+        onResult: (Result<Boolean>) -> Unit,
+    ) {
+        val MOCK_ACCESS_CHECK = false
+        if (MOCK_ACCESS_CHECK) {
+            android.util.Log.d("FaceAuth", "[MOCK] checkAccess: user=$username boxId=$boxId → allowed=true")
+            onResult(Result.success(true))
+            return
+        }
+
+        val json = JSONObject().apply {
+            put("username", username)
+            put("boxId", boxId)
+        }
+
+        val request = Request.Builder()
+            .url("$baseUrl/access/check")
+            .post(json.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onResult(Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    val rawBody = response.body?.string().orEmpty()
+                    val parsed = runCatching { JSONObject(rawBody) }.getOrNull()
+
+                    if (!response.isSuccessful) {
+                        val detail = parsed?.optString("detail").orEmpty()
+                        onResult(Result.failure(IOException(detail.ifBlank { "HTTP ${response.code}" })))
+                        return
+                    }
+
+                    val allowed = parsed?.optBoolean("allowed", false) ?: false
+                    onResult(Result.success(allowed))
+                }
+            }
+        })
+    }
+
+
+    fun logUnlock(
+        username: String,
+        boxId: String,
+        onResult: (Result<Boolean>) -> Unit,
+    ) {
+        val json = JSONObject().apply {
+            put("username", username)
+            put("boxId", boxId)
+        }
+
+        val nodeUrl = baseUrl.replace("3002", "3001")
+        val request = Request.Builder()
+            .url("$nodeUrl/users/logUnlock")
+            .post(json.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onResult(Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        onResult(Result.failure(IOException("HTTP ${response.code}")))
+                        return
+                    }
+                    onResult(Result.success(true))
+                }
+            }
+        })
     }
 
     private fun execute(
