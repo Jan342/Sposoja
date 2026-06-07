@@ -264,9 +264,9 @@ function Profile() {
                             {user.accountType === "club" ? (
                                 <span className="text-warning fw-bold">Klub</span>
                             ) : user.role === "clan" ? (
-                                <span className="text-warning fw-bold">Clan kluba</span>
+                                <span className="text-warning fw-bold">Član kluba</span>
                             ) : (
-                                <span className="text-info fw-bold">Rekreativec</span>
+                                <span className="text-info fw-bold">nisi član kluba</span>
                             )}
                         </p>
 
@@ -323,13 +323,13 @@ function Profile() {
                                                 className="bg-dark text-white border-secondary"
                                             />
                                             <Form.Text className="text-light opacity-75">
-                                                Ne more biti manjse od trenutnega stevila paketnikov.
+                                                Ne more biti manjše od trenutnega števila paketnikov.
                                             </Form.Text>
                                         </Form.Group>
 
                                         <div className="d-flex gap-2 justify-content-end">
                                             <Button type="button" variant="secondary" onClick={() => setShowClubSettings(false)}>
-                                                Preklici
+                                                Prekliči
                                             </Button>
                                             <Button type="submit" variant="primary">
                                                 Shrani

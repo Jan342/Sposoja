@@ -22,7 +22,7 @@ function RacketRent(){
     const [model, setModel] = useState('');
     const [description, setDescription] = useState('');
     
-    const [targetAudience, setTargetAudience] = useState('rekreativec'); 
+    const [targetAudience, setTargetAudience] = useState('rekreativec');
     
     const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState('');
@@ -264,16 +264,6 @@ async function addRacket(e: FormEvent<HTMLFormElement>){
                             <Form.Group className="mb-3 p-3 border border-secondary rounded bg-secondary bg-opacity-10">
                                 <Form.Label className="fw-bold text-warning mb-2 d-block">Namen uporabe opreme</Form.Label>
                                 <div className="d-flex gap-4">
-                                    <Form.Check
-                                        type="radio"
-                                        id="target-rekreativec"
-                                        label="👥 Za rekreativce"
-                                        name="targetAudience"
-                                        value="rekreativec"
-                                        checked={targetAudience === 'rekreativec'}
-                                        onChange={(e) => setTargetAudience(e.target.value)}
-                                        className="fw-semibold"
-                                    />
                                     <Form.Check
                                         type="radio"
                                         id="target-klub"
