@@ -29,8 +29,8 @@ function Home() {
                         Teniška Oprema Na Dosegu Roke
                     </h1>
                     <p className="lead mb-5 px-md-5" style={{ color: "#d1d5db", maxWidth: "800px", margin: "0 auto" }}>
-                        Digitalizirana izposoja teniških loparjev preko pametnih paketnikov.
-                        Pridruži se kot rekreativec za hitro izposojo, ali registriraj svoj klub in moderniziraj upravljanje opreme.
+                        Digitalizirana rezervacija pametnih paketnikov za hiter in enostaven dostop do klubske opreme.
+                        Pridruži se svojemu klubu, rezerviraj opremo v nekaj klikih ali registriraj klub in poenostavi upravljanje opreme.
                     </p>
 
                     <div className="d-flex justify-content-center gap-3 flex-wrap">
