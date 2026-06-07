@@ -13,7 +13,7 @@ import java.io.File
 import java.io.IOException
 
 class FaceAuthClient(
-    private val baseUrl: String = "http://164.8.219.13:3002",
+    private val baseUrl: String = "http://164.8.161.201:3002",
 ) {
     private val client = OkHttpClient()
     private val jpegType = "image/jpeg".toMediaType()

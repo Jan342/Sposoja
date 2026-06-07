@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.benchmark.traceprocessor.Row
+//import androidx.benchmark.traceprocessor.Row
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -82,7 +82,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 class MainActivity : ComponentActivity() {
-
+//test
     private var scannedBoxId by mutableStateOf("")
     private var showDialog by mutableStateOf(false)
     private var showSuccess by mutableStateOf(false)
