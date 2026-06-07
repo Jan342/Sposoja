@@ -398,8 +398,8 @@ function UserDashboard(props) {
                         <Card.Body>
                             <Card.Title>{club.clubName}</Card.Title>
                             <div className="d-flex gap-3">
-                                <Button onClick={() => nav(`/clubs/${club._id}`)}>Podrobnosti</Button>
-                                <Button onClick={() => getPopup.confirm({ text: "Ali se želite včlaniti?", showCancel: true, onConfirm: () => joinClub(club) })}>Včlani se</Button>
+                                <Button onClick={() => nav(`/clubs/${club._id}`, { state: { club } })}>Podrobnosti</Button>
+                                <Button onClick={() => getPopup.confirm({text: "Ali se želite včlaniti?",showCancel: true, onConfirm: () => joinClub(club)})}>Včlani se</Button>
                             </div>
                         </Card.Body>
                     </Card>
