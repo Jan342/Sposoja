@@ -86,9 +86,9 @@ function ClubDetails() {
                             </p>
                         </Col>
                         <Col md={4}>
-                            <div className="bg-white bg-opacity-10 rounded p-4 h-100">
-                                <div className="text-white-50">Paketniki</div>
-                                <div className="display-5 fw-bold">{String(club.packageCount ?? 0)}</div>
+                            <div className="bg-white bg-opacity-10 rounded p-4 h-100 d-flex align-items-center justify-content-between gap-3">
+                                <span className="text-white-50">Paketniki</span>
+                                <strong className="fs-3">{String(club.packageCount ?? 0)}</strong>
                             </div>
                         </Col>
                     </Row>
@@ -107,10 +107,6 @@ function ClubDetails() {
                             <p className="mb-2">
                                 <span className="text-muted d-block">Kontaktna oseba</span>
                                 <strong>{contactName || "Ni vpisano"}</strong>
-                            </p>
-                            <p className="mb-0">
-                                <span className="text-muted d-block">ID kluba</span>
-                                <code>{club._id}</code>
                             </p>
                         </Card.Body>
                     </Card>
