@@ -96,7 +96,6 @@ class MainActivity : ComponentActivity() {
             val preferences = remember { getSharedPreferences("face_auth", MODE_PRIVATE) }
             var history by remember { mutableStateOf(historyRepository.getHistory()) }
             var searchQuery by remember { mutableStateOf("") }
-            var showHistory by remember { mutableStateOf(false) }
             var username by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
             var loginChallenge by remember { mutableStateOf("") }
@@ -213,9 +212,13 @@ class MainActivity : ComponentActivity() {
             PametniPaketnikTheme {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp),
+                        modifier = if (!loggedIn) {
+                            Modifier
+                                .fillMaxSize()
+                                .padding(20.dp)
+                        } else {
+                            Modifier.fillMaxSize()
+                        },
                         verticalArrangement = if (!loggedIn) {
                             Arrangement.Center
                         } else {
@@ -311,80 +314,15 @@ class MainActivity : ComponentActivity() {
                                 Text(authMessage)
                             }
                         } else {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = "Direct4Me Paketnik",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                )
-                                TextButton(
-                                    onClick = {
-                                        loggedIn = false
-                                    },
-                                ) {
-                                    Text("Odjava")
-                                }
-                            }
-
-                            Text("Prijavljen: $username")
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Button(
-                                    onClick = {
-                                        startScanning(this@MainActivity, username, faceAuthClient)
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(56.dp),
-                                    enabled = !openBoxLoading,
-                                ) {
-                                    if (openBoxLoading) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(18.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Text("Skeniraj in Odpri")
-                                    }
-                                }
-
-                                OutlinedButton(
-                                    onClick = { showHistory = true },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(56.dp),
-                                ) {
-                                    Text("Zgodovina")
-                                }
-                            }
-
-                            if (showHistory) {
-                                HistorySection(
-                                    history = filteredHistory,
-                                    totalHistoryCount = history.size,
-                                    searchQuery = searchQuery,
-                                    onSearchQueryChange = { searchQuery = it },
-                                    onClearHistory = {
-                                        history = historyRepository.clearHistory()
-                                        searchQuery = ""
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
                             Scaffold(
+                                modifier = Modifier.fillMaxSize(),
                                 bottomBar = {
                                     NavigationBar {
                                         NavigationBarItem(
                                             selected = selectedTab == 0,
                                             onClick = { selectedTab = 0 },
                                             icon = {
-                                                Text(text = "📷", fontSize = 20.sp)
+                                                Text(text = "S", fontSize = 20.sp)
                                             },
                                             label = { Text("Skeniraj") }
                                         )
@@ -392,7 +330,7 @@ class MainActivity : ComponentActivity() {
                                             selected = selectedTab == 1,
                                             onClick = { selectedTab = 1 },
                                             icon = {
-                                                Text(text = "📋", fontSize = 20.sp)
+                                                Text(text = "Z", fontSize = 20.sp)
                                             },
                                             label = { Text("Zgodovina") }
                                         )
