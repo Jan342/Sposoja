@@ -309,7 +309,7 @@ function Dashboard() {
                                                         {entry.action === 'izposoja'
                                                             ? <Badge bg="warning" text="dark">🔑 Rezervirano</Badge>
                                                             : entry.action === 'vrnitev'
-                                                                ? <Badge bg="success">🔒 Vrnitev</Badge>
+                                                                ? <Badge bg="success">🔒 Prosto</Badge>
                                                                 : <Badge bg="info">📱 Odklep</Badge>
                                                         }
                                                     </td>
