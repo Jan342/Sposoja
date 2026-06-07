@@ -3,6 +3,33 @@ var UserModel = require('../models/userModel.js');
 var Package = require('../models/packageModel.js');
 const racketModel = require('../models/racketModel.js');
 const LockerLog = require('../models/lockerLogModel.js');
+const fs = require('fs');
+const path = require('path');
+
+const BOX_ASSIGNMENTS_PATH = path.resolve(
+    __dirname,
+    '../../../Osnove_racunalniskega_vida/scripts/member2_cv_model/artifacts/box_assignments.json'
+);
+
+function loadBoxAssignments() {
+    try {
+        if (!fs.existsSync(BOX_ASSIGNMENTS_PATH)) return {};
+        return JSON.parse(fs.readFileSync(BOX_ASSIGNMENTS_PATH, 'utf8'));
+    } catch (e) {
+        console.error('[BOX_ASSIGNMENTS] Napaka pri branju:', e.message);
+        return {};
+    }
+}
+
+function saveBoxAssignments(data) {
+    try {
+        fs.mkdirSync(path.dirname(BOX_ASSIGNMENTS_PATH), { recursive: true });
+        fs.writeFileSync(BOX_ASSIGNMENTS_PATH, JSON.stringify(data, null, 2), 'utf8');
+        console.log('[BOX_ASSIGNMENTS] Shranjeno:', JSON.stringify(data));
+    } catch (e) {
+        console.error('[BOX_ASSIGNMENTS] Napaka pri pisanju:', e.message);
+    }
+}
 
 /**
  * clubController.js
@@ -248,6 +275,67 @@ module.exports = {
         });
     },
 
+    getClubPackagesForMember: function (req, res) {
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ error: "Niste prijavljeni" });
+        }
+
+        UserModel.findById(req.session.userId).exec(function (err, user) {
+            if (err) return res.status(500).json({ error: "Napaka pri iskanju uporabnika" });
+            if (!user || !user.joinedClub) {
+                return res.status(400).json({ error: "Niste član nobenega kluba" });
+            }
+
+            Package.find({ club: user.joinedClub }).exec(function (err, packages) {
+                if (err) return res.status(500).json({ error: "Napaka pri pridobivanju paketnikov" });
+
+                racketModel.aggregate([
+                    { $match: { package: { $in: packages.map(p => p._id) } } },
+                    { $group: {
+                        _id: "$package",
+                        racketTotal: { $sum: 1 },
+                        freeTotal: { $sum: { $cond: [{ $ne: ["$rented", true] }, 1, 0] } }
+                    }}
+                ]).exec(function (err, racketCounts) {
+                    if (err) return res.status(500).json({ error: "Napaka pri štetju loparjev" });
+
+                    var packageData = packages.map(function (pkg) {
+                        var count = racketCounts.find(rc => String(rc._id) === String(pkg._id));
+                        var pkgObj = pkg.toObject();
+                        pkgObj.racketTotal = count ? count.racketTotal : 0;
+                        pkgObj.freeTotal = count ? count.freeTotal : 0;
+                        return pkgObj;
+                    });
+
+                    return res.status(200).json({ packages: packageData });
+                });
+            });
+        });
+    },
+
+    getClubPackageRacketsForMember: function (req, res) {
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ error: "Niste prijavljeni" });
+        }
+
+        UserModel.findById(req.session.userId).exec(function (err, user) {
+            if (err) return res.status(500).json({ error: "Napaka pri iskanju uporabnika" });
+            if (!user || !user.joinedClub) {
+                return res.status(400).json({ error: "Niste član nobenega kluba" });
+            }
+
+            Package.findOne({ _id: req.params.id, club: user.joinedClub }).exec(function (err, pkg) {
+                if (err) return res.status(500).json({ error: "Napaka pri iskanju paketnika" });
+                if (!pkg) return res.status(404).json({ error: "Paketnik ni najden" });
+
+                racketModel.find({ package: pkg._id }).exec(function (err, rackets) {
+                    if (err) return res.status(500).json({ error: "Napaka pri pridobivanju loparjev" });
+                    return res.status(200).json({ package: pkg, rackets: rackets });
+                });
+            });
+        });
+    },
+
     getMembers: function (req, res) {
         if (!req.session || req.session.userType !== 'club') {
             return res.status(401).json({ error: "Samo klubi lahko vidijo člane" });
@@ -255,7 +343,12 @@ module.exports = {
 
         UserModel.find({ joinedClub: req.session.userId })
             .select('-password')
-            .populate('assignedPackage', 'name location')
+            .populate('rentedPackage', 'name location')
+            .populate({
+                path: 'rented',
+                model: 'racket',
+                populate: { path: 'package', model: 'package', select: 'name location' }
+            })
             .exec(function (err, members) {
                 if (err) {
                     return res.status(500).json({ error: "Napaka pri pridobivanju članov" });
@@ -316,6 +409,75 @@ module.exports = {
             user.save(function (err) {
                 if (err) return res.status(500).json({ error: "Napaka pri odstranjevanju clana" });
                 return res.status(200).json({ message: "Clan odstranjen iz kluba" });
+            });
+        });
+    },
+
+    rentPackage: function (req, res) {
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ error: "Niste prijavljeni" });
+        }
+
+        UserModel.findById(req.session.userId).exec(function (err, user) {
+            if (err) return res.status(500).json({ error: "Napaka na strežniku" });
+            if (!user) return res.status(404).json({ error: "Uporabnik ni najden" });
+            if (user.role !== 'clan') return res.status(403).json({ error: "Samo člani kluba si lahko izposodijo paketnik" });
+
+            if (user.rentedPackage) {
+                return res.status(400).json({ error: "Že imate izposojen paketnik" });
+            }
+
+            const { packageId } = req.body;
+            if (!packageId) {
+                return res.status(400).json({ error: "Manjka ID paketnika" });
+            }
+
+            Package.findOne({ _id: packageId, club: user.joinedClub }).exec(function (err, pkg) {
+                if (err) return res.status(500).json({ error: "Napaka pri iskanju paketnika" });
+                if (!pkg) return res.status(404).json({ error: "Paketnik ne obstaja ali ne pripada vašemu klubu" });
+
+                if (pkg.rentedBy) {
+                    return res.status(400).json({ error: "Ta paketnik je že izposojen." });
+                }
+
+                pkg.rentedBy = user._id;
+                pkg.save(function (err) {
+                    if (err) return res.status(500).json({ error: "Napaka pri označevanju paketnika" });
+
+                    user.rentedPackage = pkg._id;
+                    user.save(function (err, savedUser) {
+                        if (err) return res.status(500).json({ error: "Napaka pri shranjevanju izposoje paketnika" });
+
+                        if (pkg.boxId) {
+                            const assignments = loadBoxAssignments();
+                            assignments[user.username] = String(pkg.boxId);
+                            saveBoxAssignments(assignments);
+                            console.log(`[BOX_ASSIGNMENTS] ${user.username} -> paketnik ${pkg.boxId} (${pkg.name})`);
+                        } else {
+                            console.warn(`[BOX_ASSIGNMENTS] Paketnik "${pkg.name}" nima nastavljenega boxId!`);
+                        }
+
+                        UserModel.findById(savedUser._id).populate('rentedPackage').exec(function (popErr, fullyPopulatedUser) {
+                            if (popErr || !fullyPopulatedUser) {
+                                fullyPopulatedUser = savedUser;
+                            }
+                            req.session.user = fullyPopulatedUser;
+
+                            var log = new LockerLog({
+                                user: user._id,
+                                racket: null,
+                                package: pkg._id,
+                                club: pkg.club,
+                                action: 'izposoja'
+                            });
+                            log.save(function (logErr) {
+                                if (logErr) console.error('Napaka pri shranjevanju loga:', logErr);
+                            });
+
+                            return res.status(200).json(fullyPopulatedUser);
+                        });
+                    });
+                });
             });
         });
     },

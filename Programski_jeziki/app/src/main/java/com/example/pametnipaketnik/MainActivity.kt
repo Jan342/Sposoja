@@ -86,6 +86,7 @@ class MainActivity : ComponentActivity() {
     private var scannedBoxId by mutableStateOf("")
     private var showDialog by mutableStateOf(false)
     private var showSuccess by mutableStateOf(false)
+    private var openBoxLoading by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -336,13 +337,21 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Button(
                                     onClick = {
-                                        startScanning(this@MainActivity)
+                                        startScanning(this@MainActivity, username, faceAuthClient)
                                     },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(56.dp),
+                                    enabled = !openBoxLoading,
                                 ) {
-                                    Text("Skeniraj in Odpri")
+                                    if (openBoxLoading) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Text("Skeniraj in Odpri")
+                                    }
                                 }
 
                                 OutlinedButton(
@@ -397,7 +406,7 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     when (selectedTab) {
                                         0 -> ScanTab(
-                                            onScanClick = { startScanning(this@MainActivity) }
+                                            onScanClick = { startScanning(this@MainActivity, username, faceAuthClient) }
                                         )
 
                                         1 -> Column(
@@ -439,6 +448,13 @@ class MainActivity : ComponentActivity() {
                                                             "Paketnik ID $scannedBoxId se je uspešno odprl.",
                                                             Toast.LENGTH_SHORT,
                                                         ).show()
+                                                        
+                                                        // Log in Node.js backend
+                                                        faceAuthClient.logUnlock(username, scannedBoxId) { logResult ->
+                                                            logResult.onFailure {
+                                                                Log.e("D4M", "Napaka pri beleženju odklepa: ${it.message}")
+                                                            }
+                                                        }
                                                     },
                                                 ) { Text("DA") }
                                             },
@@ -473,7 +489,7 @@ class MainActivity : ComponentActivity() {
         return File.createTempFile("face_", ".jpg", directory)
     }
 
-    private fun startScanning(context: Context) {
+    private fun startScanning(context: Context, username: String, faceAuthClient: FaceAuthClient) {
         val scanner = GmsBarcodeScanning.getClient(context)
         Log.d("D4M", "Odpiram skener...")
 
@@ -493,7 +509,36 @@ class MainActivity : ComponentActivity() {
                 if (boxId.isNotEmpty()) {
                     scannedBoxId = boxId
                     Log.d("D4M", "Box ID: $boxId")
-                    playToken(context, boxId)
+
+                    openBoxLoading = true
+                    Log.d("D4M", "Preverjam dostop za $username -> paketnik $boxId")
+                    faceAuthClient.checkAccess(username, boxId) { result ->
+                        runOnUiThread {
+                            openBoxLoading = false
+                            result
+                                .onSuccess { allowed ->
+                                    if (allowed) {
+                                        Log.d("D4M", "Dostop odobren. Odpiram paketnik...")
+                                        playToken(context, boxId)
+                                    } else {
+                                        Log.w("D4M", "Dostop zavrnjen za $username.")
+                                        Toast.makeText(
+                                            context,
+                                            "Dostop zavrnjen. Nimate pravice do tega paketnika.",
+                                            Toast.LENGTH_LONG,
+                                        ).show()
+                                    }
+                                }
+                                .onFailure { error ->
+                                    Log.e("D4M", "Napaka pri preverjanju dostopa: ${error.message}")
+                                    Toast.makeText(
+                                        context,
+                                        "Napaka pri preverjanju dostopa: ${error.message}",
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                }
+                        }
+                    }
                 } else {
                     Log.e("D4M", "ID-ja ni bilo mogoče dobiti iz: $rawValue")
                 }

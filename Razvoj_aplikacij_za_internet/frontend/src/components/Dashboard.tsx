@@ -31,8 +31,7 @@ function Dashboard() {
     const [historyLoaded, setHistoryLoaded] = useState(false);
     const [historyFilter, setHistoryFilter] = useState("");
 
-    const [assigningFor, setAssigningFor] = useState<string | null>(null);
-    const [assignMsg, setAssignMsg] = useState("");    
+    const [assignMsg, setAssignMsg] = useState("");
 
     useEffect(function () {
         const loadDashboard = async function () {
@@ -92,40 +91,6 @@ function Dashboard() {
         const data = await res.json();
         setHistory(data);
         setHistoryLoaded(true);
-    }
-
-    async function assignPackage(userId: string, packageId: string) {
-        setAssignMsg("");
-        const res = await fetch(`http://localhost:3001/clubs/members/${userId}/package`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ packageId })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            setAssignMsg("Paketnik uspešno dodeljen!");
-            setAssigningFor(null);
-            setMembersLoaded(false);
-            loadMembers(true);
-        } else {
-            setAssignMsg(data.error || "Napaka pri dodeljevanju.");
-        }
-    }
-
-    async function removePackage(userId: string) {
-        setAssignMsg("");
-        const res = await fetch(`http://localhost:3001/clubs/members/${userId}/package`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ packageId: "" })
-        });
-        if (res.ok) {
-            setAssignMsg("Dodelitev paketnika odstranjena.");
-            setMembersLoaded(false);
-            loadMembers(true);
-        }
     }
 
     async function removeMember(userId: string) {
@@ -231,11 +196,12 @@ function Dashboard() {
 
                     <Tab eventKey="clani" title="👥 Člani">
                         <div className="mt-3">
-                            <h4 className="mb-3">Člani kluba</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4 className="mb-0">Člani kluba</h4>
+                                <Button size="sm" variant="outline-secondary" onClick={() => loadMembers(true)}>↻ Osveži</Button>
+                            </div>
                             {assignMsg && (
-                                <Alert variant="info" dismissible onClose={() => setAssignMsg("")}>
-                                    {assignMsg}
-                                </Alert>
+                                <Alert variant="info" dismissible onClose={() => setAssignMsg("")}>{assignMsg}</Alert>
                             )}
                             {members.length === 0 ? (
                                 <Alert variant="secondary">Klub še nima članov.</Alert>
@@ -245,60 +211,37 @@ function Dashboard() {
                                         <thead>
                                             <tr>
                                                 <th>Uporabnik</th>
-                                                <th>Ime</th>
-                                                <th>Dodeljen paketnik</th>
+                                                <th>Ime in priimek</th>
+                                                <th>Aktiven paketnik</th>
                                                 <th>Dejanje</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {members.map(member => (
-                                                <tr key={member._id}>
-                                                    <td><code>{member.username}</code></td>
-                                                    <td>{member.firstName} {member.lastName}</td>
-                                                    <td>
-                                                        {member.assignedPackage
-                                                            ? <Badge bg="success">{member.assignedPackage.name}</Badge>
-                                                            : <span className="text-muted">– ni dodeljen –</span>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        {assigningFor === member._id ? (
-                                                            <div className="d-flex gap-2 align-items-center flex-wrap">
-                                                                <Form.Select
-                                                                    size="sm"
-                                                                    style={{ maxWidth: 180 }}
-                                                                    defaultValue={member.assignedPackage?._id || ""}
-                                                                    id={`pkg-select-${member._id}`}
-                                                                >
-                                                                    <option value="">– odstrani –</option>
-                                                                    {packages.map(p => (
-                                                                        <option key={p._id} value={p._id}>{p.name}</option>
-                                                                    ))}
-                                                                </Form.Select>
-                                                                <Button size="sm" variant="success" onClick={() => {
-                                                                    const sel = document.getElementById(`pkg-select-${member._id}`) as HTMLSelectElement;
-                                                                    assignPackage(member._id, sel.value);
-                                                                }}>Potrdi</Button>
-                                                                <Button size="sm" variant="secondary" onClick={() => setAssigningFor(null)}>Prekliči</Button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="d-flex gap-2">
-                                                                <Button size="sm" variant="outline-primary" onClick={() => setAssigningFor(member._id)}>
-                                                                    {member.assignedPackage ? "Spremeni" : "Dodeli"}
-                                                                </Button>
-                                                                {member.assignedPackage && (
-                                                                    <Button size="sm" variant="outline-danger" onClick={() => removePackage(member._id)}>
-                                                                        Odstrani
-                                                                    </Button>
-                                                                )}
-                                                                <Button size="sm" variant="danger" onClick={() => removeMember(member._id)}>
-                                                                    Vrzi ven
-                                                                </Button>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {members.map(member => {
+                                                const rentedPkg = member.rentedPackage || (member.rented as any)?.package;
+                                                const rentedRacket = member.rented as any;
+                                                return (
+                                                    <tr key={member._id}>
+                                                        <td><code>{member.username}</code></td>
+                                                        <td>{member.firstName} {member.lastName}</td>
+                                                        <td>
+                                                            {rentedPkg
+                                                                ? <>
+                                                                    <Badge bg="primary">{rentedPkg.name}</Badge><br />
+                                                                    <small>📍 {rentedPkg.location}</small>
+                                                                </>
+                                                                : <span>– ni aktiven –</span>
+                                                            }
+                                                        </td>
+
+                                                        <td>
+                                                            <Button size="sm" variant="danger" onClick={() => removeMember(member._id)}>
+                                                                Vrzi ven
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -342,7 +285,6 @@ function Dashboard() {
                                             <tr>
                                                 <th>Datum in čas</th>
                                                 <th>Član</th>
-                                                <th>Lopar</th>
                                                 <th>Paketnik</th>
                                                 <th>Akcija</th>
                                             </tr>
@@ -353,21 +295,22 @@ function Dashboard() {
                                                     <td><small>{formatDate(entry.timestamp)}</small></td>
                                                     <td>
                                                         {entry.user
-                                                            ? <><strong>{entry.user.username}</strong><br /><small className="text-primary">{entry.user.firstName} {entry.user.lastName}</small></>
-                                                            : <span className="text-muted">–</span>
+                                                            ? <><strong  className="text-secondary">{entry.user.username}</strong><br /><small>{entry.user.firstName} {entry.user.lastName}</small></>
+                                                            : <span>–</span>
                                                         }
                                                     </td>
-                                                    <td>{entry.racket?.model || <span className="text-muted">–</span>}</td>
                                                     <td>
                                                         {entry.package
-                                                            ? <><span>{entry.package.name}</span><br /><small className="text-primary">{entry.package.location}</small></>
-                                                            : <span className="text-muted">–</span>
+                                                            ? <><span>{entry.package.name}</span><br /><small className="text-danger">{entry.package.location}</small></>
+                                                            : <span>–</span>
                                                         }
                                                     </td>
                                                     <td>
                                                         {entry.action === 'izposoja'
-                                                            ? <Badge bg="warning" text="dark">🔓 Izposoja</Badge>
-                                                            : <Badge bg="success">🔒 Vrnitev</Badge>
+                                                            ? <Badge bg="warning" text="dark">🔑 Izposoja</Badge>
+                                                            : entry.action === 'vrnitev'
+                                                                ? <Badge bg="success">🔒 Vrnitev</Badge>
+                                                                : <Badge bg="info">📱 Odklep</Badge>
                                                         }
                                                     </td>
                                                 </tr>
@@ -386,7 +329,7 @@ function Dashboard() {
 
     return (
         <Container className="py-4">
-            <UserDashboard onRentSuccess={refreshRackets}/>
+            <UserDashboard onRentSuccess={refreshRackets} />
 
             {userContext.user?.role === 'rekreativec' && (
                 <>
