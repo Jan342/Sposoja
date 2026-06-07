@@ -188,7 +188,7 @@ function UserDashboard(props) {
                                     <ListGroup variant="flush" className="bg-transparent text-white">
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Hkrati imaš lahko rezerviran le <strong>1 paketnik</strong>.</ListGroup.Item>
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Ob izposoji in vračilu preveri zasedenost.</ListGroup.Item>
-                                        <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Izdelke pravočasno vrni v paketnik!</ListGroup.Item>
+                                        <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Izdelke vrni preden končaš izposojo!</ListGroup.Item>
                                         <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Srečno igro!</ListGroup.Item>
                                     </ListGroup>
                                 </Card.Body>
@@ -370,20 +370,7 @@ function UserDashboard(props) {
                             </Card.Body>
                         </Card>
                     </Col>
-                    {/* Tega vec ne rabimo? */}
-                    <Col xs={12} md={5}>
-                        <Card bg="dark" text="white" className="border-0 shadow h-100 p-3">
-                            <Card.Body>
-                                <Card.Title className="fw-bold mb-3">📌 Pravila omarice</Card.Title>
-                                <ListGroup variant="flush" className="bg-transparent text-white">
-                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Hkrati imaš lahko izposojen le <strong>1 lopar</strong>.</ListGroup.Item>
-                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Lopar po zaključeni igri vrni.</ListGroup.Item>
-                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• V primeru poškodbe obvesti skrbnika.</ListGroup.Item>
-                                    <ListGroup.Item className="bg-transparent text-white border-secondary px-0 py-2">• Srečno igro!</ListGroup.Item>
-                                </ListGroup>
-                            </Card.Body>
-                        </Card>
-                    </Col>
+
                 </Row>
             </Container>
         );
