@@ -132,7 +132,7 @@ function UserDashboard(props) {
                 <Container className="mt-5" style={{ maxWidth: "1000px" }}>
                     <div className="mb-4 text-start d-flex justify-content-between align-items-center">
                         <div>
-                            <h1 className="fw-bold m-0">Moja izposoja</h1>
+                            <h1 className="fw-bold m-0">Moja rezervacija</h1>
                         </div>
                     </div>
 
@@ -216,7 +216,7 @@ function UserDashboard(props) {
                                     {" / "}
                                     {selectedPackage.name}
                                 </>
-                            ) : "Paketniki za izposojo"}
+                            ) : "Paketniki za rezervacijo"}
                         </h1>
                     </div>
                 </div>
@@ -298,7 +298,7 @@ function UserDashboard(props) {
                     <div className="mt-4">
                         <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
                             <div>
-                                <h4 className="fw-bold m-0">Lopar/ji v paketniku: </h4>
+                                <h4 className="fw-bold m-0">Loparji v paketniku: </h4>
                                 <small className="text-muted">📍 {selectedPackage.location}</small>
                             </div>
                             <Button variant="outline-secondary" size="sm" onClick={() => setSelectedPackage(null)}>
@@ -330,7 +330,7 @@ function UserDashboard(props) {
             <Container className="mt-5" style={{ maxWidth: "1000px" }}>
                 <div className="mb-4 text-start d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 className="fw-bold m-0">Moja izposoja</h1>
+                        <h1 className="fw-bold m-0">Moja rezervacija</h1>
                         <p className="text-muted m-0">Uporabnik: {user?.username || "Rekreativec"}</p>
                     </div>
                 </div>
