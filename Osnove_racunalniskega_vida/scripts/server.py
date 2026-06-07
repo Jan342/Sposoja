@@ -12,15 +12,16 @@ import time
 import uvicorn
 import uuid
 
-from face_id import enroll, verify_image
-from member2_predict_model import classifyImage
+from scripts.face_id import enroll, verify_image
+from scripts.member2_predict_model import classifyImage
 import numpy as np
 import cv2 as cv
 
 app = FastAPI()
-FACE_MODEL_DIR = Path("member2_cv_model/artifacts/face_id_users")
-USER_STORE_PATH = Path("member2_cv_model/artifacts/face_id_users.json")
-BOX_ASSIGNMENTS_PATH = Path("member2_cv_model/artifacts/box_assignments.json")
+BASE_DIR = Path(__file__).resolve().parent
+FACE_MODEL_DIR = BASE_DIR / "member2_cv_model/artifacts/face_id_users"
+USER_STORE_PATH = BASE_DIR / "member2_cv_model/artifacts/face_id_users.json"
+BOX_ASSIGNMENTS_PATH = BASE_DIR / "member2_cv_model/artifacts/box_assignments.json"
 LOGIN_CHALLENGES = {}
 CHALLENGE_TTL_SECONDS = 120
 
