@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Card, Col, Container, Row, Spinner } from "react-bootstrap";
+import { Alert, Button, Card, Col, Container, Row, Spinner } from "react-bootstrap";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ServerRequest } from "../types/ServerRequest";
 import type { ClubData } from "../types/other_types";
@@ -72,26 +72,6 @@ function ClubDetails() {
             <Button variant="outline-secondary" className="mb-4" onClick={() => navigate(-1)}>
                 Nazaj
             </Button>
-
-            <Card bg="dark" text="white" className="border-0 shadow-lg mb-4">
-                <Card.Body className="p-4 p-md-5 text-start">
-                    <Row className="align-items-center g-4">
-                        <Col md={8}>
-                            <Badge bg="primary" className="mb-3">Klub</Badge>
-                            <h1 className="fw-bold mb-2">{club.clubName}</h1>
-                            <p className="text-white-50 fs-5 mb-0">
-                                {club.address || "Lokacija ni vpisana."}
-                            </p>
-                        </Col>
-                        <Col md={4}>
-                            <div className="bg-white bg-opacity-10 rounded p-4 h-100 d-flex align-items-center justify-content-between gap-3">
-                                <span className="text-white-50">Paketniki</span>
-                                <strong className="fs-3">{String(club.packageCount ?? 0)}</strong>
-                            </div>
-                        </Col>
-                    </Row>
-                </Card.Body>
-            </Card>
 
             <Row className="g-4 text-start">
                 <Col md={6}>
