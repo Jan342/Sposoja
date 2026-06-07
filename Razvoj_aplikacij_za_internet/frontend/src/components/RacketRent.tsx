@@ -197,7 +197,7 @@ async function addRacket(e: FormEvent<HTMLFormElement>){
                                     <Form.Label>Direct4Me ID (boxId)</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        placeholder="Vnesi stevilko paketnika (npr. 1265)"
+                                        placeholder="Vnesi številko paketnika (npr. 1265)"
                                         value={packageBoxId}
                                         onChange={(e) => setPackageBoxId(e.target.value)}
                                         required
@@ -205,11 +205,11 @@ async function addRacket(e: FormEvent<HTMLFormElement>){
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Stevilo loparjev v paketniku</Form.Label>
+                                    <Form.Label>Število loparjev v paketniku</Form.Label>
                                     <Form.Control
                                         type="number"
                                         min="0"
-                                        placeholder="Vnesi stevilo loparjev"
+                                        placeholder="Vnesi število loparjev"
                                         value={packageRacketLimit}
                                         onChange={(e) => setPackageRacketLimit(e.target.value)}
                                         required
