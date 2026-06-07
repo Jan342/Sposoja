@@ -123,7 +123,7 @@ def calculate_threshold(templates):
         nearest_distances.append(float(np.min(distances)))
 
     percentile = float(np.percentile(nearest_distances, 95))
-    threshold = float(np.clip(percentile * 1.35 + 0.02, 0.12, 0.75))
+    threshold = float(np.clip(percentile * 1.35 + 0.02, 0.12, 1.15))
     return threshold, nearest_distances
 
 
