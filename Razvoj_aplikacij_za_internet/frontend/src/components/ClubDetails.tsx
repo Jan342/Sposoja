@@ -67,8 +67,6 @@ function ClubDetails() {
         );
     }
 
-    const contactName = [club.firstname, club.lastname].filter(Boolean).join(" ");
-
     return (
         <Container className="py-5" style={{ maxWidth: "1000px" }}>
             <Button variant="outline-secondary" className="mb-4" onClick={() => navigate(-1)}>
@@ -105,8 +103,12 @@ function ClubDetails() {
                                 <strong>{club.username}</strong>
                             </p>
                             <p className="mb-2">
-                                <span className="text-muted d-block">Kontaktna oseba</span>
-                                <strong>{contactName || "Ni vpisano"}</strong>
+                                <span className="text-muted d-block">Lokacija</span>
+                                <strong>{club.address || "Ni vpisana"}</strong>
+                            </p>
+                            <p className="mb-0">
+                                <span className="text-muted d-block">Paketniki</span>
+                                <strong>{String(club.packageCount ?? 0)}</strong>
                             </p>
                         </Card.Body>
                     </Card>
