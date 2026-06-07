@@ -15,3 +15,110 @@ Dejan – logika izposoje (vmesni del sistema)
 2. teden – implementacija prijave (login)
 4. teden – implementacija sistema izposoje
 6. teden – obvestila in odpravljanje napak (bug fixing)
+
+
+# Namestitev
+## Zahteve
+
+Za delovanje celotnega projekta potrebujete:
+- Mongodb
+- Docker (opcijsko, vendar priporočljivo)
+
+Projekt je mogoče namestiti na dva načina:
+
+1. **Z uporabo Dockerja in Docker Compose**
+2. **Z ročnim zagonom posameznih komponent**
+
+## Namestitev z Dockerjem
+
+Za uporabo Dockerja in Docker Compose odprite terminal v korenski mapi projekta in zaženite naslednji ukaz:
+
+```bash
+docker compose up --build
+```
+Ukaz najprej zgradi vse potrebne Docker slike, nato pa samodejno zažene vse komponente projekta. Po uspešnem zagonu je aplikacija pripravljena za uporabo.
+To naredimo samo enkrat, ko se enkrat zgradi. Potem pa zaganjamo z ukazom
+```bash
+docker compose up
+```
+kjer uporabi že zgrajene containerje.
+
+Po zagonu bodo posamezni servisi dostopni na naslednjih vratih:
+
+- MongoDb (27017)
+- Backend (3001)
+- Python server (3002)
+- Frontend (5173)
+
+## Ročni zagon komponent
+
+Alternativno lahko posamezne komponente projekta zaženete ročno.
+
+### Razvoj aplikacij za internet
+Najprej se premaknite v mapo ```frontend``` in namestite odvisnosti z ukazom:
+
+```bash
+npm install
+```
+Ukaz ustvari mapo ```node_modules```, ki vsebuje vse potrebne knjižnice za delovanje aplikacije.
+
+Isto naredite za mapo ```backend```
+
+Zagon te aplikacije je potrebno zagnati ločeno v mapi ```frontend``` in ločeno v mapi ```backend```
+
+### Razvojni način
+```bash
+npm run dev
+```
+### Navaden način
+
+```bash
+npm start
+```
+
+
+## Namestitev sistema za osnove računalniškega vida
+### Zahteve
+Za delovanje sistema potrebujete program miniconda na povezavi: https://www.anaconda.com/download/success
+ - Conda okolje
+
+### Namestitev okolja
+Okolje namestimo z ukazom v terminalu:
+
+```bash
+conda env create -f environment.yml
+```
+
+### Aktiviramo z
+Za vstop v to okolje
+
+```bash
+conda activate LoparGO
+```
+
+### Za vzpostavitev serverja
+Teče server z ukazom:
+
+```bash
+uvicorn server:app [--reload] --host HOST --port 3002
+```
+--reload je opcijska nastavitev za razvojni način, ki samodejno ponovno zažene Uvicorn strežnik, ko zazna spremembe v izvorni kodi.
+Primer zagona, kjer se nahajamo v mapi ```Osnove_racunalniskega_vida``` in priporočljivo je, da se aplikacija zaganja iz korenske mape projekta, saj so Python importi definirani relativno glede na strukturo projekta. S tem zagotovimo, da Python pravilno prepozna module.
+
+```bash
+uvicorn scripts.server:app --host 0.0.0.0 --port 3002
+```
+
+Po zagonu dobimo informacijo o 'uspešnosti'
+- INFO:     Uvicorn running on http://0.0.0.0:3002 (Press CTRL+C to quit)
+
+Na linku http://localhost:3002 preverimo delovanje.
+
+### Uporaba mobilne aplikacije
+Za delovanje mobilne aplikacije potrebujemo
+- android studio
+- emulator ali fizični android telefon, ki ga povežemo na računalnik z USB kablom. 
+
+Za emulator gremo v android studiu na desni strani pod zavihek "device manager", kliknemo na +, nato "create virtual device" in izberemo željen emulator. Bolje manjši in osnovni model. Po izboru kliknemo next in finish.
+
+Zaženemo aplikacijo ko kliknemo zgoraj na zelen trikotnik.

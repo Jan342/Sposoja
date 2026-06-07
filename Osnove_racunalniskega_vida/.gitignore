@@ -1,4 +1,3 @@
-data_raw/
 dataset/
 __pycache__/
 *.pyc

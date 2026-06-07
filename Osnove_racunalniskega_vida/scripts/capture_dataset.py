@@ -1,7 +1,7 @@
 import cv2 as cv
 import os
 
-print("V katero mapo želite shraniti slike? (npr. lopar, paketnik, no_loparji)")
+print("V katero mapo želite shraniti slike?")
 category = input("> ")
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
