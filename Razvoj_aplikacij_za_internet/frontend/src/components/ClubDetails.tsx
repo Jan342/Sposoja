@@ -97,10 +97,10 @@ function ClubDetails() {
                 <Col md={6}>
                     <Card className="h-100 border-0 shadow-sm">
                         <Card.Body className="p-4">
-                            <h4 className="fw-bold mb-3">Izposoja</h4>
+                            <h4 className="fw-bold mb-3">Rezervacija</h4>
                             <p className="text-muted">
-                                Po vclanitvi lahko uporabnik dostopa do klubskih paketnikov in opreme,
-                                ki jo klub ponuja svojim clanom.
+                                Po včlanitvi lahko uporabnik dostopa do klubskih paketnikov in opreme,
+                                ki jo klub ponuja svojim članom.
                             </p>
                             <Button variant="primary" onClick={() => navigate("/dashboard")}>
                                 Nazaj na seznam klubov
