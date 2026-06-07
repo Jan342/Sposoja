@@ -171,7 +171,7 @@ function Dashboard() {
 
                             <Col lg={8}>
                                 <h4>
-                                    {selectedPackage ? `Loparji v paketniku: ${selectedPackage.name}` : "Loparji"}
+                                    Loparji v paketniku:
                                 </h4>
 
                                 {!selectedPackage ? (
@@ -236,7 +236,7 @@ function Dashboard() {
 
                                                         <td>
                                                             <Button size="sm" variant="danger" onClick={() => removeMember(member._id)}>
-                                                                Vrzi ven
+                                                                Odstrani člana
                                                             </Button>
                                                         </td>
                                                     </tr>
