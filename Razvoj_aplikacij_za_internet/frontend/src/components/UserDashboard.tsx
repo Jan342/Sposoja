@@ -298,7 +298,7 @@ function UserDashboard(props) {
                     <div className="mt-4">
                         <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
                             <div>
-                                <h4 className="fw-bold m-0">Loparji v paketniku: <span className="text-primary">{selectedPackage.name}</span></h4>
+                                <h4 className="fw-bold m-0">Lopar/ji v paketniku: </h4>
                                 <small className="text-muted">📍 {selectedPackage.location}</small>
                             </div>
                             <Button variant="outline-secondary" size="sm" onClick={() => setSelectedPackage(null)}>
