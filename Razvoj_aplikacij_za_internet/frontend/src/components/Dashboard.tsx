@@ -329,25 +329,8 @@ function Dashboard() {
 
     return (
         <Container className="py-4">
-            <UserDashboard onRentSuccess={refreshRackets} />
+            <UserDashboard />
 
-            {userContext.user?.role === 'rekreativec' && (
-                <>
-                    <hr className="my-5" />
-                    <h3>Loparji za rekreativnost</h3>
-                    <Row>
-                        {rackets.map((racket: any) => (
-                            <Col key={racket._id} xs={12} sm={6} md={4} className="mb-4">
-                                <Racket
-                                    racket={racket}
-                                    isOccupied={!!racket.rented}
-                                    onRentSuccess={refreshRackets}
-                                />
-                            </Col>
-                        ))}
-                    </Row>
-                </>
-            )}
         </Container>
     );
 }
