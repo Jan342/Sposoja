@@ -15,6 +15,7 @@ function RacketRent(){
     const [remaining, setRemaining] = useState(0);
     const [packageName, setPackageName] = useState('');
     const [packageLocation, setPackageLocation] = useState('');
+    const [packageBoxId, setPackageBoxId] = useState('');
     const [packageRacketLimit, setPackageRacketLimit] = useState('');
     const [packageLimitInputs, setPackageLimitInputs] = useState<Record<string, string>>({});
     const [selectedPackage, setSelectedPackage] = useState('');
@@ -60,12 +61,14 @@ function RacketRent(){
         const data = await (await res.post({
             name: packageName,
             location: packageLocation,
+            boxId: packageBoxId,
             racketLimit: Number(packageRacketLimit)
         })).json();
 
         if (data._id) {
             setPackageName('');
             setPackageLocation('');
+            setPackageBoxId('');
             setPackageRacketLimit('');
             setMessage('Paketnik je bil dodan.');
             await loadPackages();
@@ -186,6 +189,17 @@ async function addRacket(e: FormEvent<HTMLFormElement>){
                                         placeholder="Vnesi lokacijo"
                                         value={packageLocation}
                                         onChange={(e) => setPackageLocation(e.target.value)}
+                                        required
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Direct4Me ID (boxId)</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Vnesi stevilko paketnika (npr. 1265)"
+                                        value={packageBoxId}
+                                        onChange={(e) => setPackageBoxId(e.target.value)}
                                         required
                                     />
                                 </Form.Group>

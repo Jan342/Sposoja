@@ -8,8 +8,7 @@ var lockerLogSchema = new Schema({
     },
     'racket': {
         type: Schema.Types.ObjectId,
-        ref: 'racket',
-        required: true
+        ref: 'racket'
     },
     'package': {
         type: Schema.Types.ObjectId,
@@ -23,7 +22,7 @@ var lockerLogSchema = new Schema({
     },
     'action': {
         type: String,
-        enum: ['izposoja', 'vrnitev'],
+        enum: ['izposoja', 'vrnitev', 'odklep'],
         required: true
     },
     'timestamp': {
